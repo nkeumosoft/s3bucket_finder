@@ -65,10 +65,14 @@ def human_read_acl(acl):
             except KeyError as e:
                 pass
 
-        if type_permission["READ"] and type_permission["WRITE"]:
-            result_permissions['public-read-write'] = True
-        elif type_permission["READ"] and not type_permission["WRITE"]:
-            result_permissions['public-read'] = True
+            try:
+
+                if type_permission["READ"] and type_permission["WRITE"]:
+                    result_permissions['public-read-write'] = True
+                elif type_permission["READ"] and not type_permission["WRITE"]:
+                    result_permissions['public-read'] = True
+            except KeyError as e:
+                pass
 
         result_permissions["Owner_ID"] = acl["Owner"]["ID"]
 
