@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 from manage import scan_single_bucket, make_a_csv_file
 from config import setup_config, setup_credentials, get_region
+from scrapping import scrapping
 
 
 def launch():
@@ -37,8 +38,7 @@ def launch():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--list-public-bucket', '-l', action='store_true', help='List all public bucket with some information',
-                        default=launch())
+    parser.add_argument('-s', '--scrap-bucket', dest='bucket_name', help='Scan the bucket, if exist, and provide public properties')
 
     subparsers = parser.add_subparsers(title='mode', dest='mode')
 
@@ -57,6 +57,9 @@ def main():
 
     # Parse the args
     args = parser.parse_args()
+
+    if args.bucket_name:
+        scrapping(args.bucket_name)
 
     if args.mode == 'setup-config':
         if args.output != 'json':
