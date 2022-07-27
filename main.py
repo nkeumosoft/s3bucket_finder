@@ -1,8 +1,11 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import boto3
+
 from manage import scan_single_bucket, make_a_csv_file
 from config import setup_config, setup_credentials, get_region
+from bucket_finder import S3WebScrapping
 
 
 def launch():
@@ -37,8 +40,8 @@ def launch():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--list-public-bucket', '-l', action='store_true', help='List all public bucket with some information',
-                        default=launch())
+    parser.add_argument('--buckets-file', '-f', dest='aws_file_name',
+                        help='Name of text file containing bucket names to check', metavar='file')
 
     subparsers = parser.add_subparsers(title='mode', dest='mode')
 
@@ -57,6 +60,19 @@ def main():
 
     # Parse the args
     args = parser.parse_args()
+    field_head = [
+        "Owner_ID",
+        "bucket_name",
+        'url',
+        "private",
+        "public-read",
+        "public-read-write",
+        "aws-exec-read",
+        "authenticated-read",
+        'log-delivery-write',
+        'access url',
+
+    ]
 
     if args.mode == 'setup-config':
         if args.output != 'json':
@@ -67,6 +83,18 @@ def main():
     elif args.mode == 'setup-cred':
         setup_credentials(id=args.aws_access_key_id, key=args.aws_secret_access_key)
         print("Configuration of the credentials file done.")
+
+    else:
+        if args.aws_file_name is not None:
+            bucketsIn = args.aws_file_name
+            print(bucketsIn)
+            aws_s3_web = S3WebScrapping(bucketsIn)
+            aws_s3_web.get_aws_s3_site()
+            aws_s3_web.dict_to_csv(field_head)
+        else:
+            print("file not found")
+            exit(-1)
+            pass
 
 
 if __name__ == '__main__':

@@ -93,3 +93,24 @@ def scan_single_bucket(bucket_name, region_name):
             logging.warning('bucket not found')
 
     return None
+
+
+
+def scan_bucket_s3(bucket_name, region_name):
+    s3_client = boto3.client('s3')
+
+    try:
+        val = s3_client.head_bucket(Bucket=bucket_name)
+        acl = s3_client.get_bucket_acl(Bucket=bucket_name)
+
+        dict_acl_permission = human_read_acl(acl)
+        dict_acl_permission['bucket_name'] = bucket_name
+        dict_acl_permission['url'] = f"https://{bucket_name}.s3.{region_name}.amazonaws.com/"
+
+        return dict_acl_permission
+    except ClientError as e:
+
+        if e.response['Error']['Code'] == '404':
+            logging.warning('bucket not found')
+
+    return None
