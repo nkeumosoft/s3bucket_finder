@@ -1,44 +1,16 @@
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import boto3
-from manage import scan_single_bucket, make_a_csv_file
-from config import setup_config, setup_credentials, get_region
-from scrapping import scrapping
 
-
-def launch():
-    field_head = [
-        "Owner_ID",
-        "bucket_name",
-        'url',
-        "private",
-        "public-read",
-        "public-read-write",
-        "aws-exec-read",
-        "authenticated-read",
-        'log-delivery-write'
-
-    ]
-    responses = []
-    s3 = boto3.resource('s3')
-    buckets = s3.buckets.all()
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = {
-            executor.submit(scan_single_bucket, bucketName.name, get_region()): bucketName for
-            bucketName in buckets
-        }
-        # modifier
-        for future in as_completed(futures):
-            responses.append(future.result())
-            if future.exception():
-                print(f"Bucket scan raised exception: {futures[future]} - {future.exception()}")
-    make_a_csv_file(field_head, responses)
-    # print("Hello world")
+from config import setup_config, setup_credentials
+from scrapping import scrapping, scrapping_buckets
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--scrap-bucket', dest='bucket_name', help='Scan the bucket, if exist, and provide public properties')
+    parser.add_argument('-s', '--scrap-bucket', dest='bucket_name',
+                        help='Scan the bucket, if exist, and provide public properties')
+    parser.add_argument('-sf', '--scrap-file', dest='file',
+                        help='Scan a file containing a list of buckets name, and provide public properties. You can '
+                             'give the name of file if is on the current directory, of give the path of the file')
 
     subparsers = parser.add_subparsers(title='mode', dest='mode')
 
@@ -60,6 +32,9 @@ def main():
 
     if args.bucket_name:
         scrapping(args.bucket_name)
+
+    if args.file:
+        scrapping_buckets(args.file)
 
     if args.mode == 'setup-config':
         if args.output != 'json':

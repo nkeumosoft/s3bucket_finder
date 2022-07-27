@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-def setup_config(region: str, output="json"):
+def setup_config(region: str, output="json") -> None:
     """
     Configure the config file of the AWS directory, if the directory does not exist, it creates it.
 
@@ -28,7 +28,7 @@ def setup_config(region: str, output="json"):
             f.write(f"output={output}\n")
 
 
-def setup_credentials(id: str, key: str):
+def setup_credentials(id: str, key: str) -> None:
     """
     Configure the credentials file of the AWS directory, if the directory does not exist, it creates it.
 
@@ -54,7 +54,13 @@ def setup_credentials(id: str, key: str):
             f.write(f"aws_secret_access_key={key}\n")
 
 
-def get_region():
+def get_region() -> str | None:
+    """
+    Return the current region of the local config file.
+    If the config file don't exist, return None.
+
+    :return: str | None
+    """
     home = Path.home()
     directory_aws = os.path.join(str(home), '.aws/')
     is_dir_aws = os.path.isdir(directory_aws)
