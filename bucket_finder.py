@@ -43,12 +43,10 @@ class S3WebScrapping:
         setup_config(self.initial_region)
 
     def get_single_aws_site(self, url):
-
         """
             check if bucket name exist
-            :param str host the url of amazone
-
-            :return dictionnary { 'location': ,'status: }
+            :param str url amazone bucket url
+            :return dict { 'location': ,'status: }
 
         """
         try:
@@ -97,6 +95,10 @@ class S3WebScrapping:
         return ''
 
     def get_aws_s3_site(self):
+        """
+
+
+        """
         list_bucket = []
         for word in self.page:
             url = f'http://{word}.s3.amazonaws.com'
@@ -108,6 +110,7 @@ class S3WebScrapping:
         self.content_make_to_csv = self.list_parse_result(list_bucket)
 
     def list_parse_result(self, list_bucket):
+
         result_liste_des_buckets = []
         tmp_bucket = None
         for bucket in list_bucket:
@@ -121,6 +124,13 @@ class S3WebScrapping:
         return result_liste_des_buckets
 
     def human_read_acl(self, acl, access=ListBucketResult):
+        """
+                human readable acl properties
+             :params  acl acl dictionnary
+             :params access browser property access
+             :return
+        """
+
         result_permissions = {
             "Owner_ID": '',
             "bucket_name": '',
@@ -137,7 +147,7 @@ class S3WebScrapping:
         type_permission = {
 
         }
-
+        # verifed if the bucket is private
         if len(acl['Grants']) == 1 or access == AccessDenied:
             result_permissions = {
                 "Owner_ID": '',
@@ -152,6 +162,7 @@ class S3WebScrapping:
 
             }
         else:
+            # for any element in grant check if bucket acl is public-read public read and write or user authentification
             for grant in acl['Grants']:
                 try:
                     if grant['Grantee']['URI'] == "http://acs.amazonaws.com/groups/global/AllUsers":
@@ -177,6 +188,9 @@ class S3WebScrapping:
         return result_permissions
 
     def parse_result(self, bucket_name, url, region='us‑east‑1'):
+        """
+            display a result for
+        """
         dict_acl_permission = {
             "Owner_ID": '',
             "bucket_name": '',
@@ -234,9 +248,7 @@ class S3WebScrapping:
 
     def load_bucket_names_from_file(self):
         """
-        Load in bucket names from a text file
-
-        :param str file_name: Path to text file
+        Load  bucket names from a text file
         :return: set: All lines of text file
         """
         buckets = set()
@@ -251,6 +263,12 @@ class S3WebScrapping:
             exit1 = exit(1)
 
     def dict_to_csv(self, header_file):
+
+        """
+         write a data into a csv file
+         :parms header_file is header of your csv file
+         :return None
+        """
 
         home = str(Path.home())
         folder = os.path.join(home, "ResultsCSV")
@@ -268,40 +286,40 @@ class S3WebScrapping:
 
 import argparse
 
-
-class CustomFormatter(argparse.RawTextHelpFormatter, argparse.RawDescriptionHelpFormatter):
-    pass
-
 #
-# def main(CURRENT_VERSION="1.0"):
-#     # Instantiate the parser
-#     parser = argparse.ArgumentParser(description='Bscan: scan the bucket and make a file for each bucket',
-#                                      prog='Bscan', allow_abbrev=True, formatter_class=CustomFormatter)
-#     # Declare arguments
-#     parser.add_argument('--version', action='version', version=CURRENT_VERSION,
-#                         help='Display the current version of this tool')
+# class CustomFormatter(argparse.RawTextHelpFormatter, argparse.RawDescriptionHelpFormatter):
+#     pass
 #
-#     parser.add_argument('--buckets-file', '-f', dest='aws_file_name',
-#                         help='Name of text file containing bucket names to check', metavar='file')
-#     region = {
-#         "ie": 'https://s3-eu-west-1.amazonaws.com',
-#         "nc": 'https://s3-us-west-1.amazonaws.com',
-#         "us": 'https://s3.amazonaws.com',
-#         "si": 'https://s3-ap-southeast-1.amazonaws.com',
-#         "to": 'https://s3-ap-northeast-1.amazonaws.com'}
-#     # Parse the args
-#     args = parser.parse_args()
-#
-#     field_head = [
-#         "Owner_ID",
-#         "bucket_name",
-#         'url',
-#         "private",
-#         "public-read",
-#         "public-read-write",
-#         "aws-exec-read",
-#         "authenticated-read",
-#         'log-delivery-write',
+# #
+# # def main(CURRENT_VERSION="1.0"):
+# #     # Instantiate the parser
+# #     parser = argparse.ArgumentParser(description='Bscan: scan the bucket and make a file for each bucket',
+# #                                      prog='Bscan', allow_abbrev=True, formatter_class=CustomFormatter)
+# #     # Declare arguments
+# #     parser.add_argument('--version', action='version', version=CURRENT_VERSION,
+# #                         help='Display the current version of this tool')
+# #
+# #     parser.add_argument('--buckets-file', '-f', dest='aws_file_name',
+# #                         help='Name of text file containing bucket names to check', metavar='file')
+# #     region = {
+# #         "ie": 'https://s3-eu-west-1.amazonaws.com',
+# #         "nc": 'https://s3-us-west-1.amazonaws.com',
+# #         "us": 'https://s3.amazonaws.com',
+# #         "si": 'https://s3-ap-southeast-1.amazonaws.com',
+# #         "to": 'https://s3-ap-northeast-1.amazonaws.com'}
+# #     # Parse the args
+# #     args = parser.parse_args()
+# #
+# #     field_head = [
+# #         "Owner_ID",
+# #         "bucket_name",
+# #         'url',
+# #         "private",
+# #         "public-read",
+# #         "public-read-write",
+# #         "aws-exec-read",
+# #         "authenticated-read",
+# #         'log-delivery-write',
 #         'access url',
 #
 #     ]

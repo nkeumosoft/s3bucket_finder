@@ -11,10 +11,22 @@ The OUTPUT parameter is optional.
         python main.py setup-cred --id AWS_ACCESS_KEY_ID --key AWS_SECRET_ACCESS_KEY
 This command allows you to configure your credentials, you must provide your AWS access key id and your AWS secret access key provided by AWS.
 
+--| First, create a virtual environment and install all dependencies inside
+
+    virtualenv .venv
+
+    source .venv/bin/activate
+    
+    pip install -r requirements.txt
+
+### --| After that, you just need to run the following instructions...
+
+#### => For scanning a simple bucket
+
 * When the configurations are done, you can now launch the main script
 * 
-        python main.py -f your file-name
-* Example  file-name = first.txt this file content 10 words that you can use or also can use bucket_test.txt it content more than 5000 words for your own test just run
+        python main.py -f your file_name
+* Example  file_name = first.txt this file content 10 words that you can use or also can use bucket_test.txt it content more than 5000 words for your own test just run
 
         python main.py -f first.txt
         
