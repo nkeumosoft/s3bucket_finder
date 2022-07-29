@@ -20,35 +20,87 @@ class AwsSetting(Setting):
 
     def get_region(self):
         """
-        Get the actual region configuration.
+        Get the current region configuration.
 
-        :return: str
+        :return: str | None
         """
-        return self.__region
+        home = Path.home()
+        directory_aws = os.path.join(str(home), '.aws/')
+        is_dir_aws = os.path.isdir(directory_aws)
+        file_config_path = os.path.join(directory_aws, 'config')
+        config_file_exist = Path(file_config_path).is_file()
+        if is_dir_aws and config_file_exist:
+            # aws folder exist
+            with open(file_config_path, "r") as f:
+                for line in f.readlines():
+                    if "region" in line:
+                        self.__region = line.split("=")[1].rstrip("\n")
+                        return self.__region
+        else:
+            return None
 
     def get_key_id(self):
         """
-        Get the actual AWS Access Key id.
+        Get the current AWS Access Key id.
 
-        :return: str
+        :return: str | None
         """
-        return self.__key_id
+        home = Path.home()
+        directory_aws = os.path.join(str(home), '.aws/')
+        is_dir_aws = os.path.isdir(directory_aws)
+        file_credentials_path = os.path.join(directory_aws, 'credentials')
+        cred_file_exist = Path(file_credentials_path).is_file()
+        if is_dir_aws and cred_file_exist:
+            # aws folder exist
+            with open(file_credentials_path, "r") as f:
+                for line in f.readlines():
+                    if "aws_access_key_id" in line:
+                        self.__key_id = line.split("=")[1].rstrip("\n")
+                        return self.__key_id
+        else:
+            return None
 
     def get_key_access(self):
         """
-        Get the actual AWS Secret Access Key.
+        Get the current AWS Secret Access Key.
 
-        :return: str
+        :return: str | None
         """
-        return self.__key_access
+        home = Path.home()
+        directory_aws = os.path.join(str(home), '.aws/')
+        is_dir_aws = os.path.isdir(directory_aws)
+        file_credentials_path = os.path.join(directory_aws, 'credentials')
+        cred_file_exist = Path(file_credentials_path).is_file()
+        if is_dir_aws and cred_file_exist:
+            # aws folder exist
+            with open(file_credentials_path, "r") as f:
+                for line in f.readlines():
+                    if "aws_secret_access_key" in line:
+                        self.__key_access = line.split("=")[1].rstrip("\n")
+                        return self.__key_access
+        else:
+            return None
 
     def get_output(self):
         """
-        Get the actual output configuration.
+        Get the current output configuration.
 
-        :return: str
+        :return: str | None
         """
-        return self.__output
+        home = Path.home()
+        directory_aws = os.path.join(str(home), '.aws/')
+        is_dir_aws = os.path.isdir(directory_aws)
+        file_config_path = os.path.join(directory_aws, 'config')
+        config_file_exist = Path(file_config_path).is_file()
+        if is_dir_aws and config_file_exist:
+            # aws folder exist
+            with open(file_config_path, "r") as f:
+                for line in f.readlines():
+                    if "output" in line:
+                        self.__output = line.split("=")[1].rstrip("\n")
+                        return self.__output
+        else:
+            return None
 
     def __set_region(self, reg):
         """

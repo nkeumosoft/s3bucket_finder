@@ -41,29 +41,35 @@ def scrapping(name):
 
             elif response.status_code == 400:
                 error = data['Error']
-                message = error['Message']
-                location = message.split(" ")[1]
-                uri = f"https://s3.{location}.amazonaws.com/" \
-                      f"{name}"
-                try:
-                    request = requests.get(uri)
-                    if request.status_code == 200:
-                        # Modify print by logging
-                        print(f"Bucket <{name}> || Exist || "
-                              f"Public || {location} Location || {uri}")
-                        return Bucket(name=name, access_browser="Public",
-                                      location=location, url=uri)
-                    else:
-                        # Modify print by logging
-                        print(f"Bucket <{name}> || Exist || "
-                              f"Private || {location} Location || {uri}")
-                        return Bucket(name=name, access_browser="Private",
-                                      location=location, url=uri)
+                if error['Code'] == "IllegalLocationConstraintException":
+                    message = error['Message']
+                    location = message.split(" ")[1]
+                    uri = f"https://s3.{location}.amazonaws.com/" \
+                          f"{name}"
+                    try:
+                        request = requests.get(uri)
+                        if request.status_code == 200:
+                            # Modify print by logging
+                            print(f"Bucket <{name}> || Exist || "
+                                  f"Public || {location} Location || {uri}")
+                            return Bucket(name=name, access_browser="Public",
+                                          location=location, url=uri)
 
-                except ConnectionError:
+                        else:
+                            # Modify print by logging
+                            print(f"Bucket <{name}> || Exist || "
+                                  f"Private || {location} Location || {uri}")
+                            return Bucket(name=name, access_browser="Private",
+                                          location=location, url=uri)
+
+                    except ConnectionError:
+                        # Modify print by logging
+                        print(f"Connection Error ==> in status code 400 for "
+                              f"bucket {name}")
+                else:
                     # Modify print by logging
-                    print(f"Connection Error ==> in status code 400 for "
-                          f"bucket {name}")
+                    print(f"Invalid bucket name <{name}>")
+                    return None
 
             elif response.status_code == 301:
                 error = data['Error']
@@ -78,6 +84,7 @@ def scrapping(name):
                         return Bucket(name=name, access_browser="Public",
                                       location="US",
                                       url=f"https://{endpoint}")
+
                     else:
                         # Modify print by logging
                         print(f"Bucket <{name}> || Exist || "
@@ -86,6 +93,7 @@ def scrapping(name):
                         return Bucket(name=name, access_browser="Private",
                                       location="US",
                                       url=f"https://{endpoint}")
+
                 except ConnectionError:
                     # Modify print by logging
                     print(f"Connection Error ==> in status code 301 for "
@@ -95,6 +103,7 @@ def scrapping(name):
                 # Modify print by logging
                 print(f"Bucket <{name}> || Don't Exist")
                 return None
+
     except ConnectionError:
         # Modify print by logging
         print("Connection Error")
@@ -125,6 +134,7 @@ def scrapping_buckets(file):
                 if bucket is not None:
                     buckets.append(bucket)
         return buckets
+
     else:
         print("This path or file don't exist !")
         return None
