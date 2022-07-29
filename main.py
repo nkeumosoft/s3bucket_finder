@@ -109,7 +109,6 @@ def main():
             aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
 
             if args.bucket_name is not None:
-
                 bucket_acl_value = aws_s3_acl.get_bucket_acl(list_of_bucket)
                 dict_to_save_csv = display_bucket_to_dict(bucket_acl_value)
                 print(dict_to_save_csv)

@@ -27,12 +27,12 @@ class S3Acl:
         for bucket in self.list_of_bucket:
             self.get_bucket_acl(bucket)
 
-    def get_bucket_acl(self, bucket, region='us‑east‑1') -> None:
+    def get_bucket_acl(self, bucket, region='us‑east‑1') -> Bucket:
         """
                     get a bucket acl property for on  bucket
                     :param bucket: Bucket
                     :param region: str the region of a bucket
-                    :return bucket: None
+                    :return bucket: for a single file
 
         """
         name = bucket.get_name()
@@ -48,7 +48,7 @@ class S3Acl:
 
             bucket.set_acl_found(bucket_human_read_acl(acl, access_browser))
 
-
+            return bucket
         except ClientError as e:
 
             #  check if auth user have access else they access is private
@@ -71,7 +71,7 @@ class S3Acl:
             # setup_config
             elif e.response['Error']['Code'] == '404':
                 print('bucket not found')
-
+            return bucket
 
 def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
     """     transform an Amazon s3 storage bucket acl properties in to
