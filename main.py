@@ -1,130 +1,69 @@
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import as_completed
 
-import boto3
-
-from manage import scan_single_bucket, make_a_csv_file
-from settings.config import setup_config, setup_credentials
-from settings.config import get_region
-from s3bucket_finder.models.bucket_finder import S3WebScrapping
-
-
-def launch():
-    field_head = [
-        "Owner_ID",
-        "bucket_name",
-        'url',
-        "private",
-        "public-read",
-        "public-read-write",
-        "aws-exec-read",
-        "authenticated-read",
-        'log-delivery-write'
-
-    ]
-    responses = []
-    s3 = boto3.resource('s3')
-    buckets = s3.buckets.all()
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = {
-            executor.submit(
-                scan_single_bucket,
-                bucketName.name,
-                get_region()
-            ): bucketName for bucketName in buckets
-        }
-        # modifier
-        for future in as_completed(futures):
-            responses.append(future.result())
-            if future.exception():
-                print(f"Bucket scan raised exception:"
-                      f" {futures[future]} "
-                      f"- {future.exception()}")
-    make_a_csv_file(field_head, responses)
-    # print("Hello world")
+from models.aws_setting import AwsSetting
+from utils.scapping import scrapping, scrapping_buckets
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--buckets-file', '-f', dest='aws_file_name',
-        help='Name of text file containing '
-             'bucket names to check',
-        metavar='file')
+    settings = AwsSetting()
 
-    subparsers = parser.add_subparsers(
-        title='mode', dest='mode')
+    parser = argparse.ArgumentParser(
+        description="s3bucket_finder: Analysis of "
+                    "Buckets by AfroCode\n", prog="s3bucket_finder",
+        allow_abbrev=False)
+    parser.add_argument('-s', '--scrap-bucket', dest='bucket_name',
+                        help='Scan the bucket, if exist, and provide public '
+                             'properties')
+    parser.add_argument('-sf', '--scrap-file', dest='file',
+                        help='Scan a file containing a list of buckets name, '
+                             'and provide public properties. You can '
+                             'give the name of file if is on the current '
+                             'directory, of give the path of the file')
+
+    subparsers = parser.add_subparsers(title='mode', dest='mode')
 
     # Setup Config Mode
-    parser_config = subparsers.add_parser(
-        'setup-config',
-        help="Local AWS Configuration of config file")
-    parser_config.add_argument(
-        '--region', '-r', dest='region',
-        help='Name of the AWS region.', required=True)
-    parser_config.add_argument(
-        '--output', '-o', dest='output',
-        help='Name of the AWS CLI output format.'
-             ' Default: json',
-        default='json')
+    parser_config = subparsers.add_parser('setup-config',
+                                          help="Local AWS Configuration of "
+                                               "config file")
+    parser_config.add_argument('--region', '-r', dest='region',
+                               help='Name of the AWS region.', required=True)
+    parser_config.add_argument('--output', '-o', dest='output',
+                               help='Name of the AWS CLI output format. '
+                                    'Default: json', default='json')
 
     # Setup Credentials Mode
-    parser_cred = subparsers.add_parser(
-        'setup-cred', help="Local AWS Configuration of "
-                           "credentials file")
-    parser_cred.add_argument(
-        '--id', '-i', dest='aws_access_key_id',
-        help='Represents the AWS Access Key Id.',
-        required=True)
-    parser_cred.add_argument(
-        '--key', '-k', dest='aws_secret_access_key',
-        help='Represents the AWS Secret Access Key',
-        required=True)
+    parser_cred = subparsers.add_parser('setup-cred',
+                                        help="Local AWS Configuration of "
+                                             "credentials file")
+    parser_cred.add_argument('--id', '-i', dest='aws_access_key_id',
+                             help='Represents the AWS Access Key Id.',
+                             required=True)
+    parser_cred.add_argument('--key', '-k', dest='aws_secret_access_key',
+                             help='Represents the AWS Secret Access Key',
+                             required=True)
 
     # Parse the args
     args = parser.parse_args()
-    field_head = [
-        "Owner_ID",
-        "bucket_name",
-        'url',
-        "private",
-        "public-read",
-        "public-read-write",
-        "aws-exec-read",
-        "authenticated-read",
-        'log-delivery-write',
-        'access url',
 
-    ]
+    if args.bucket_name:
+        scrapping(args.bucket_name)
+
+    if args.file:
+        scrapping_buckets(args.file)
 
     if args.mode == 'setup-config':
         if args.output != 'json':
-            setup_config(
-                region=args.region,
-                output=args.output
-            )
+            settings.setup_config(region=args.region, output=args.output)
         else:
-            setup_config(region=args.region)
+            settings.setup_config(region=args.region)
+        # Modify print by logging
         print("Configuration of the config file done.")
     elif args.mode == 'setup-cred':
-        setup_credentials(
-            args.aws_access_key_id,
-            args.aws_secret_access_key)
-        print("Configuration of the "
-              "credentials file done.")
-
-    else:
-        if args.aws_file_name is not None:
-            buckets_in = args.aws_file_name
-
-            aws_s3_web = S3WebScrapping(buckets_in)
-            aws_s3_web.get_aws_s3_site()
-            aws_s3_web.dict_to_csv(field_head)
-        else:
-            print("file not found")
-            exit(-1)
-            pass
+        settings.setup_credentials(id=args.aws_access_key_id,
+                                   key=args.aws_secret_access_key)
+        # Modify print by logging
+        print("Configuration of the credentials file done.")
 
 
 if __name__ == '__main__':
