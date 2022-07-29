@@ -16,6 +16,7 @@ def make_bucket_result_to_csv(content_make_to_csv, header_file,
      :return None
     """
 
+    # we get a home folder to create a csv in ResultsCS folder
     home = str(Path.home())
     folder = os.path.join(home, "ResultsCSV")
     if not os.path.isdir(folder):

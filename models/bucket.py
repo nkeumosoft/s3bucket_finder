@@ -16,14 +16,14 @@ class Bucket:
         self.__location = location
         self.__url = url
         self.aclFound = {
-                    "Owner_ID": '',
-                    'private': False,
-                    'public-read': False,
-                    'public-read-write': False,
-                    'aws-exec-read': False,
-                    'authenticated-read': False,
-                    'log-delivery-write': False,
-                }
+            "Owner_ID": '',
+            'private': False,
+            'public-read': False,
+            'public-read-write': False,
+            'aws-exec-read': False,
+            'authenticated-read': False,
+            'log-delivery-write': False,
+        }
 
     def get_name(self):
         """
@@ -58,7 +58,18 @@ class Bucket:
         return self.__url
 
     def get_acl_found(self):
+        """
+        Return the acl proprerty of a bucket.
+
+        :return: str
+        """
+
         return self.aclFound
 
     def set_acl_found(self, acl_found):
+        """
+        Set the acl proprerty of a bucket.
+
+        :return: str
+        """
         self.aclFound = acl_found

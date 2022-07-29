@@ -21,10 +21,20 @@ class S3Acl:
         self.__aws_setting.setup_config(self.initial_region)
 
     def get_acl_list_of_bucket(self) -> None:
+        """
+            get a bucket acl property for a list of bucket
+        """
         for bucket in self.list_of_bucket:
             self.get_bucket_acl(bucket)
 
-    def get_bucket_acl(self, bucket, region='us‑east‑1'):
+    def get_bucket_acl(self, bucket, region='us‑east‑1') -> None:
+        """
+                    get a bucket acl property for on  bucket
+                    :param bucket: Bucket
+                    :param region: str the region of a bucket
+                    :return bucket: None
+
+        """
         name = bucket.get_name()
 
         access_browser = bucket.get_access_browser()
@@ -38,39 +48,34 @@ class S3Acl:
 
             bucket.set_acl_found(bucket_human_read_acl(acl, access_browser))
 
-            # logging.warning(dict_acl_permission)
-            return bucket
+
         except ClientError as e:
 
             #  check if auth user have access else they access is private
             if e.response['Error']['Code'] == '403' or \
                     e.response['Error']['Code'] == Permission.AccessDenied:
-
                 bucket.set_acl_found(
                     bucket_human_read_acl(acl, Permission.AccessDenied)
-                    )
+                )
 
-            logging.warning(TypeException.IllegalLocationConstraintException)
             if e.response['Error']['Code'] \
                     == TypeException.IllegalLocationConstraintException:
 
-                logging.warning(e.response['Error']['Code'])
                 self.indice_region += 1
                 if self.indice_region <= len(RGN_NAME) - 1:
-                    logging.warning(RGN_NAME[self.indice_region])
+
                     self.__aws_setting.setup_config(
                         RGN_NAME[self.indice_region])
                     self.get_bucket_acl(bucket, region)
 
             # setup_config
             elif e.response['Error']['Code'] == '404':
-                logging.warning('bucket not found', Permission.NoSuchBucket)
-
-        return bucket
+                print('bucket not found')
 
 
 def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
-    """      human readable acl properties
+    """     transform an Amazon s3 storage bucket acl properties in to
+            human-readable
              :params  acl:dict
              :params access browser property access
              :return
@@ -92,7 +97,7 @@ def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
     }
     # verifed if the bucket is private
     if len(acl['Grants']) == 1 or access == Permission.AccessDenied:
-        logging.warning(Permission.AccessDenied)
+
         result_permissions = {
             'Owner_ID': '',
             'private': True,
@@ -141,6 +146,12 @@ def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
 
 
 def display_bucket_to_dict(bucket: Bucket) -> dict:
+    """
+        transform a bucket attribute in to dict element to save easily into
+        csv files
+        :param: bucket: Bucket
+        :return field_head:dict
+    """
     field_head = {
         'Owner_ID': str(bucket.get_acl_found()["Owner_ID"]),
         'bucket_name': bucket.get_name(),

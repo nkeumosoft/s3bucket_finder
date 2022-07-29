@@ -39,6 +39,22 @@ The OUTPUT parameter is optional.
         python main.py setup-cred --id AWS_ACCESS_KEY_ID --key AWS_SECRET_ACCESS_KEY
 This command allows you to configure your credentials, you must provide your AWS access key id and your AWS secret access key provided by AWS.
 
-* When the configurations are done, you can now launch the feature (Next Libert...)
+* When the configurations are done, you can now launch the feature 
 
-       
+#### => For scanning and download a acl properties with simple bucket into csv  file 
+
+    python main.py --scrap-bucket BUCKET_NAME download or python main.py -s BUCKET_NAME  download 
+    * if you have file who content a list of bucket just tape this in your terminal cmd
+    python main.py --scrap-file FILE download or python main.py -sf FILE download -r | --rename your new rename file
+
+#### by default the S3finder make a folder into your home directory with R
+#### Where BUCKET_NAME is the name of bucket you want to scan.
+    
+    python main.py --scrap-bucket BUCKET_NAME download or python main.py -s BUCKET_NAME  download 
+    * if you have file who content a list of bucket just tape this in your terminal cmd
+    python main.py --scrap-file FILE download or python main.py -sf FILE download -r | --rename your new rename file
+
+#### => For scanning a file containing a list of buckets name <<rapport_aws_s3>>
+like a name but if you want to change this just tape
+ 
+Where the FILE parameter can be a file or a path to a file.
