@@ -1,4 +1,3 @@
-import logging
 
 from botocore.exceptions import ClientError
 
@@ -97,7 +96,7 @@ def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
         'READ': None,
         'WRITE': None,
     }
-    # verifed if the bucket is private
+    # check if the bucket is private
     if len(acl['Grants']) == 1 or access == Permission.AccessDenied:
 
         result_permissions = {
@@ -134,7 +133,7 @@ def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
                     'URI'] == "http://acs.amazonaws.com/groups/s3/" \
                               "LogDelivery":
                     result_permissions['log-delivery-write'] = True
-            except KeyError as e:
+            except KeyError:
                 pass
 
         if type_permission["READ"] and type_permission["WRITE"]:

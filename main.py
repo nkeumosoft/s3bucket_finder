@@ -64,7 +64,7 @@ def main():
 
     # Parse the args
     args = parser.parse_args()
-
+    list_of_bucket = ''
     if args.bucket_name is not None:
         list_of_bucket = scrapping(args.bucket_name)
 
@@ -84,7 +84,7 @@ def main():
         # Modify print by logging
         print("Configuration of the credentials file done.")
 
-    if args.mode == 'download':
+    if args.mode == 'download' and (args.bucket_name is not None or args.file):
         field_name = [
             'Owner_ID',
             'bucket_name',
@@ -104,7 +104,7 @@ def main():
             file_output = "rapport_aws_s3"
         try:
             fraud_detector = boto3.client('sts')
-            response = fraud_detector.get_caller_identity()
+            fraud_detector.get_caller_identity()
             aws_s3_client = boto3.client('s3')
             aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
 
@@ -137,7 +137,9 @@ def main():
             logging.ERROR(e)
         except ConnectionError:
             print('connection not found')
-
+    else:
+        print(' args not found  ')
+        exit(-1)
 
 if __name__ == '__main__':
     main()

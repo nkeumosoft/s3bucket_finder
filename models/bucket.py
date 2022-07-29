@@ -59,7 +59,7 @@ class Bucket:
 
     def get_acl_found(self):
         """
-        Return the acl proprerty of a bucket.
+        Return the acl property of a bucket.
 
         :return: str
         """
@@ -68,7 +68,7 @@ class Bucket:
 
     def set_acl_found(self, acl_found):
         """
-        Set the acl proprerty of a bucket.
+        Set the acl properties of a bucket.
 
         :return: str
         """
