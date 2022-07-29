@@ -1,6 +1,5 @@
 import argparse
 import logging
-
 from requests.exceptions import ConnectionError
 
 import boto3
@@ -134,12 +133,13 @@ def main():
             print('please make sure that you have a aws credential  config '
                   'before use this command ')
         except Exception as e:
-            logging.ERROR(e)
+            logging.error(e)
         except ConnectionError:
             print('connection not found')
     else:
         print(' args not found  ')
         exit(-1)
+
 
 if __name__ == '__main__':
     main()
