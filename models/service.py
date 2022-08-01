@@ -19,6 +19,15 @@ class S3Acl:
     def __exit__(self):
         self.__aws_setting.setup_config(self.initial_region)
 
+    def check_head_bucket(self, bucket):
+        """
+         Checks if a bucket exists.
+         :param Bucket bucket: bucket to check
+        """
+
+        if not isinstance(bucket, Bucket):
+            raise ValueError('you have not send ')
+
     def get_acl_list_of_bucket(self) -> None:
         """
             get a bucket acl property for a list of bucket
