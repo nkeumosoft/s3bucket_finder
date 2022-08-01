@@ -38,8 +38,9 @@ class S3Acl:
     def check_read_acl_permissions(self, bucket):
         """
             Check if we have a permission to read a bucket
-            :param bucket: a bucket to get a acl permision
+            :param bucket: a bucket to get the acl permission
             and check it
+            :return dict
 
         """
         s3_client = self.aws_client

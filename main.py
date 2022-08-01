@@ -14,6 +14,7 @@ from utils.scapping import scrapping, scrapping_buckets
 
 def main():
     settings = AwsSetting()
+    list_of_bucket = None
 
     parser = argparse.ArgumentParser(
         description="s3bucket_finder: Analysis of "
@@ -64,7 +65,7 @@ def main():
 
     # Parse the args
     args = parser.parse_args()
-    list_of_bucket = None
+
     if args.bucket_name is not None:
         list_of_bucket = scrapping(args.bucket_name)
 
@@ -78,28 +79,27 @@ def main():
             settings.setup_config(region=args.region)
         # Modify print by logging
         print("Configuration of the config file done.")
+
     elif args.mode == 'setup-cred':
         settings.setup_credentials(id=args.aws_access_key_id,
                                    key=args.aws_secret_access_key)
         # Modify print by logging
         print("Configuration of the credentials file done.")
 
-    if args.mode == 'download':
+    elif args.mode == 'download':
 
         if args.rename is not None:
             file_output = args.rename
         else:
             file_output = "rapport_aws_s3"
+
         try:
-            fraud_detector = boto3.client('sts')
-            fraud_detector.get_caller_identity()
             aws_s3_client = boto3.client('s3')
             aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
 
             if args.bucket_name is not None:
                 aws_s3_acl.check_read_acl_permissions(list_of_bucket)
                 bucket_acl_value = aws_s3_acl.get_bucket_acl(list_of_bucket)
-                logging.warning(bucket_acl_value.get_acl_found())
                 dict_to_save_csv = display_bucket_to_dict(bucket_acl_value)
 
                 make_csv_with_pandas([dict_to_save_csv], file_name=file_output)
@@ -110,18 +110,17 @@ def main():
 
                 for bucket in list_of_bucket:
                     tmp_bucket = display_bucket_to_dict(bucket)
-                    print(tmp_bucket)
                     dict_to_save_csv.append(tmp_bucket)
 
                 make_csv_with_pandas(dict_to_save_csv, file_name=file_output)
 
         except NoCredentialsError:
-            print('please make sure that you have a aws credential  config '
+            print('Please make sure that you have a aws credential  config '
                   'before use this command ')
         except Exception as e:
             logging.error(e)
         except ConnectionError:
-            print('connection not found')
+            logging.warning('Connection not found')
 
 
 if __name__ == '__main__':
