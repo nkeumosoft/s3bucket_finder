@@ -5,9 +5,11 @@ import csv
 import os
 from pathlib import Path
 
+import pandas as pd
+
 
 def make_bucket_result_to_csv(content_make_to_csv, header_file,
-                file_name) -> None:
+                              file_name) -> None:
     """
      write a data into a csv file
      :param content_make_to_csv: list[ file:dict ] that you want to print in your csv file
@@ -28,3 +30,13 @@ def make_bucket_result_to_csv(content_make_to_csv, header_file,
         # Use writerows() not writerow()
         writer.writeheader()
         writer.writerows(content_make_to_csv)
+
+
+def make_csv_with_pandas(data_for_make_to_csv, file_name):
+    home = str(Path.home())
+    folder = os.path.join(home, f"ResultsCSV")
+    if not os.path.isdir(folder):
+        os.mkdir(folder)
+
+    df = pd.DataFrame(data_for_make_to_csv)
+    df.to_csv(folder+'/'+file_name+'.csv')
