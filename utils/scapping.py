@@ -100,7 +100,7 @@ def scrapping(name):
                 return None
 
     except:
-        logging.warning("Connection Error !!")
+        logging.warning(f"Connection Error in bucket <{name}> !!")
 
 
 def scrapping_buckets(file):

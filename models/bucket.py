@@ -15,7 +15,7 @@ class Bucket:
         self.__access_browser = access_browser
         self.__location = location
         self.__url = url
-        self.aclFound = {
+        self.__aclFound = {
             "Owner_ID": '',
             'private': False,
             'public-read': False,
@@ -64,7 +64,7 @@ class Bucket:
         :return: str
         """
 
-        return self.aclFound
+        return self.__aclFound
 
     def set_acl_found(self, acl_found):
         """
@@ -72,4 +72,4 @@ class Bucket:
 
         :return: str
         """
-        self.aclFound = acl_found
+        self.__aclFound = acl_found
