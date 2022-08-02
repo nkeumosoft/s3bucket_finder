@@ -1,6 +1,6 @@
 awscrt==0.13.8
 boto3==1.24.42
-botocore==1.27.26
+botocore==1.27.43
 certifi==2022.6.15
 charset-normalizer==2.1.0
 et-xmlfile==1.1.0

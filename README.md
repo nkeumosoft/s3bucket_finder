@@ -9,7 +9,7 @@
     virtualenv .venv
 
     source .venv/bin/activate
-    
+
     pip install -r requirements.txt
 
 ### --| After that, you just need to run the following instructions...
