@@ -62,7 +62,7 @@ class Bucket:
         :return: str
         """
 
-        return self.acl_found
+        return self._acl_found
 
     @acl_found.setter
     def acl_found(self, acl_found):
@@ -70,4 +70,4 @@ class Bucket:
 
         :return: str
         """
-        self.acl_found = acl_found
+        self._acl_found = acl_found

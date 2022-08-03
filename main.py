@@ -127,9 +127,9 @@ def main():
             aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
 
             if args.bucket_name is not None:
-                logging.error(list_of_bucket)
-                aws_s3_acl.check_read_acl_permissions(list_of_bucket)
 
+                aws_s3_acl.check_read_acl_permissions(list_of_bucket)
+                logging.error(list_of_bucket)
                 bucket_acl_value = aws_s3_acl.get_bucket_acl(list_of_bucket)
 
                 dict_to_save_csv = display_bucket_to_dict(bucket_acl_value)
