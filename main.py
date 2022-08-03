@@ -20,13 +20,17 @@ def main():
         prog="s3bucket_finder",
         allow_abbrev=False,
     )
-    parser.add_argument(
-        "-s",
-        "--scrap-bucket",
-        dest="bucket_name",
-        help="Scan the bucket, if exist, and provide public " "properties",
+
+    subparsers = parser.add_subparsers(title="mode", dest="mode")
+
+    # Download Mode
+    parser_download = subparsers.add_parser(
+        "scan",
+        help="Create a csv file who  content the buckets information "
+        "with acl property",
     )
-    parser.add_argument(
+
+    parser_download.add_argument(
         "-sf",
         "--scrap-file",
         dest="file",
@@ -35,14 +39,11 @@ def main():
         "give the name of file if is on the current "
         "directory, of give the path of the file",
     )
-
-    subparsers = parser.add_subparsers(title="mode", dest="mode")
-
-    # Download Mode
-    parser_download = subparsers.add_parser(
-        "download",
-        help="Create a csv file who  content the buckets information "
-        "with acl property",
+    parser_download.add_argument(
+        "-s",
+        "--scrap-bucket",
+        dest="bucket_name",
+        help="Scan the bucket, if exist, and provide public " "properties",
     )
     parser_download.add_argument(
         "--rename",
@@ -94,12 +95,6 @@ def main():
     # Parse the args
     args = parser.parse_args()
 
-    if args.bucket_name is not None:
-        list_of_bucket = scrapping(args.bucket_name)
-
-    if args.file is not None:
-        list_of_bucket = scrapping_file(args.file)
-
     if args.mode == "setup-config":
         if args.output != "json":
             settings.setup_config(region=args.region, output=args.output)
@@ -115,7 +110,12 @@ def main():
         # Modify print by logging
         print("Configuration of the credentials file done.")
 
-    elif args.mode == "download":
+    elif args.mode == "scan":
+        if args.bucket_name is not None:
+            list_of_bucket = scrapping(args.bucket_name)
+
+        if args.file is not None:
+            list_of_bucket = scrapping_file(args.file)
 
         if args.rename is not None:
             file_output = args.rename
@@ -156,6 +156,9 @@ def main():
 
         except Exception as except_errors:
             logging.error(except_errors)
+
+    else:
+        logging.error("not args found are passed")
 
 
 if __name__ == "__main__":
