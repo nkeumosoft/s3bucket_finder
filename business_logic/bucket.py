@@ -2,27 +2,26 @@
     Author: Edmond Ghislain MAKOLLE
 
 """
+from dataclasses import dataclass
 
 
+@dataclass
 class Bucket:
     """S3 Bucket class definition."""
 
-    def __init__(
-        self, name: str, access_browser: str, location: str, url: str
-    ):
-        self.__name = name
-        self.__access_browser = access_browser
-        self.__location = location
-        self.__url = url
-        self.__aclFound = {
-            "Owner_ID": "",
-            "private": False,
-            "public-read": False,
-            "public-read-write": False,
-            "aws-exec-read": False,
-            "authenticated-read": False,
-            "log-delivery-write": False,
-        }
+    __name: str
+    __access_browser: str
+    __location: str
+    __url: str
+    __acl_found = {
+        "Owner_ID": "",
+        "private": False,
+        "public-read": False,
+        "public-read-write": False,
+        "aws-exec-read": False,
+        "authenticated-read": False,
+        "log-delivery-write": False,
+    }
 
     @property
     def get_name(self):
@@ -63,7 +62,7 @@ class Bucket:
         :return: str
         """
 
-        return self.__aclFound
+        return self.__acl_found
 
     @acl_found.setter
     def acl_found(self, acl_found):
@@ -71,4 +70,4 @@ class Bucket:
 
         :return: str
         """
-        self.__aclFound = acl_found
+        self.__acl_found = acl_found
