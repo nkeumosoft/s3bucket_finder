@@ -5,8 +5,7 @@
 
 import os
 
-from models.aws_setting_checker import AwsSettingChecker
-
+from business_logic.aws_setting_checker import AwsSettingChecker
 from interface.setting import Setting
 
 

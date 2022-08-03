@@ -15,13 +15,6 @@ repos:
       - id: black
         args:
           - --line-length=79
-  - repo: local
-    hooks:
-      - id: pylint
-        name: pylint
-        entry: pylint
-        language: python
-        types: [python]
   - repo: https://github.com/pycqa/isort
     rev: 5.10.1
     hooks:
@@ -46,3 +39,17 @@ repos:
     hooks:
       - id: docformatter
         args: [ --in-place ]
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args:
+         [
+           "-rn", # Only display messages
+           "--rcfile=./pylintrc", # Link to your config file
+           "-sn", # Don't display the score
+           "--good-names"
+         ]

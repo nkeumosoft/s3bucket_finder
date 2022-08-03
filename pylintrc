@@ -1,0 +1,3 @@
+[tool.pylint.basic]
+
+good-names= = ["e" , "i", "logger", "e", "j", "k", "ex", "Run", "_"]

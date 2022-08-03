@@ -1,12 +1,19 @@
+"""
+    Author: Edmond Ghislain MAKOLLE
+
+"""
 import logging
 
-from aws_setting import AwsSetting
 from botocore.exceptions import ClientError
-from bucket import Bucket
-from s3exception import RGN_NAME, Permission, TypeException
+
+from business_logic.aws_setting import AwsSetting
+from business_logic.bucket import Bucket
+from business_logic.s3exception import RGN_NAME, Permission, TypeException
 
 
 class S3Acl:
+    """A class to represent  aws service to check acl property for a bucket."""
+
     def __init__(
         self,
         list_of_bucket: list,
@@ -19,10 +26,10 @@ class S3Acl:
         self.indice_region = -1
         self.initial_region = self.__aws_setting.get_region()
 
-    def __exit__(self):
+    def __exit__(self, exception_type, exception_value, traceback):
         self.__aws_setting.setup_config(self.initial_region)
 
-    def check_head_bucket(self, bucket: Bucket):
+    def check_head_bucket(self, bucket: Bucket) -> bool:
         """check if bucket exist.
 
         :param bucket: bucket to check in aws s3 storage
@@ -32,8 +39,8 @@ class S3Acl:
 
         try:
             self.aws_client.head_bucket(Bucket=bucket.get_name)
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "404":
+        except ClientError as error:
+            if error.response["Error"]["Code"] == "404":
                 return False
         return True
 
@@ -64,13 +71,13 @@ class S3Acl:
 
                 return acl_perm_response
 
-            except ClientError as e:
-                if (e.response["Error"]["Code"] == "AccessDenied") or (
-                    e.response["Error"]["Code"] == "AllAccessDisabled"
+            except ClientError as aws_error:
+                if (aws_error.response["Error"]["Code"] == "AccessDenied") or (
+                    aws_error.response["Error"]["Code"] == "AllAccessDisabled"
                 ):
                     acl_perm_response["permission"] = Permission.AccessDenied
                 elif (
-                    e.response["Error"]["Code"]
+                    aws_error.response["Error"]["Code"]
                     == TypeException.IllegalLocationConstraintException
                 ):
                     acl_perm_response[
@@ -78,6 +85,7 @@ class S3Acl:
                     ] = "LocationConstraintException"
 
             return acl_perm_response
+        return None
 
     def get_acl_list_of_bucket(self) -> None:
         """get a bucket acl property for a list of bucket."""
@@ -117,9 +125,8 @@ class S3Acl:
                     )
                     self.get_bucket_acl(bucket, region)
 
-        except ClientError as e:
-            logging.error(e)
-
+        except ClientError as aws_error:
+            logging.error(aws_error)
         return bucket
 
 
