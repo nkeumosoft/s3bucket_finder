@@ -95,27 +95,33 @@ def main():
     # Parse the args
     args = parser.parse_args()
 
+    print("\n")  # Just for presentation
     if args.mode == "setup-config":
         if args.output != "json":
             settings.setup_config(region=args.region, output=args.output)
         else:
             settings.setup_config(region=args.region)
-        # Modify print by logging
-        print("Configuration of the config file done.")
+        logging.info("Configuration of the config file done.")
 
     elif args.mode == "setup-cred":
         settings.setup_credentials(
             the_id=args.aws_access_key_id, the_key=args.aws_secret_access_key
         )
-        # Modify print by logging
-        print("Configuration of the credentials file done.")
+        logging.info("Configuration of the credentials file done.")
 
     elif args.mode == "scan":
         if args.bucket_name is not None:
+            logging.info(
+                f"The bucket scan <{args.bucket_name}> will start in a few "
+                f"seconds...\n"
+            )
             list_of_bucket = scrapping(args.bucket_name)
+            print("\n")  # Just for presentation
 
         if args.file is not None:
+            logging.info("The file scan will start in a few seconds...\n")
             list_of_bucket = scrapping_file(args.file)
+            print("\n")  # Just for presentation
 
         if args.rename is not None:
             file_output = args.rename
@@ -124,6 +130,7 @@ def main():
 
         try:
             aws_s3_client = boto3.client("s3")
+            logging.info("Generation of CSV file with ACL properties...\n")
             aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
 
             if args.bucket_name is not None:
@@ -145,20 +152,24 @@ def main():
                     dict_to_save_csv.append(tmp_bucket)
 
                 make_csv_with_pandas(dict_to_save_csv, file_name=file_output)
+            logging.info(
+                "It's over, the file is in the directory ~/ResultsCSV/"
+            )
 
         except NoCredentialsError:
-            print(
-                "Please make sure that you have a aws credential  config "
-                "before use this command "
+            logging.warning(
+                "Please make sure that you have a aws credential config "
+                "before use this command."
             )
         except ConnectionError:
             logging.warning("Connection not found")
 
         except Exception as except_errors:
-            logging.error(except_errors)
+            logging.warning(except_errors)
 
     else:
-        logging.error("not args found are passed")
+        logging.warning("No argument found.\n")
+        parser.print_help()
 
 
 if __name__ == "__main__":
