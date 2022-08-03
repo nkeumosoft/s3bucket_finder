@@ -7,7 +7,7 @@ from requests.exceptions import ConnectionError
 
 from _utils.createcsvfile import make_csv_with_pandas
 from core.aws.aws_setting import AwsSetting
-from core.business_logic.scapping import scrapping, scrapping_buckets
+from core.business_logic.scrapping import scrapping, scrapping_file
 from core.business_logic.service import S3Acl, display_bucket_to_dict
 
 
@@ -98,7 +98,7 @@ def main():
         list_of_bucket = scrapping(args.bucket_name)
 
     if args.file is not None:
-        list_of_bucket = scrapping_buckets(args.file)
+        list_of_bucket = scrapping_file(args.file)
 
     if args.mode == "setup-config":
         if args.output != "json":
@@ -110,7 +110,7 @@ def main():
 
     elif args.mode == "setup-cred":
         settings.setup_credentials(
-            id=args.aws_access_key_id, key=args.aws_secret_access_key
+            the_id=args.aws_access_key_id, the_key=args.aws_secret_access_key
         )
         # Modify print by logging
         print("Configuration of the credentials file done.")
@@ -129,7 +129,7 @@ def main():
             if args.bucket_name is not None:
 
                 aws_s3_acl.check_read_acl_permissions(list_of_bucket)
-                logging.error(list_of_bucket)
+
                 bucket_acl_value = aws_s3_acl.get_bucket_acl(list_of_bucket)
 
                 dict_to_save_csv = display_bucket_to_dict(bucket_acl_value)
@@ -151,10 +151,11 @@ def main():
                 "Please make sure that you have a aws credential  config "
                 "before use this command "
             )
-        except Exception as e:
-            logging.error(e)
         except ConnectionError:
             logging.warning("Connection not found")
+
+        except Exception as except_errors:
+            logging.error(except_errors)
 
 
 if __name__ == "__main__":
