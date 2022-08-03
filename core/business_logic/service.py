@@ -2,11 +2,13 @@
     Author: Edmond Ghislain MAKOLLE
 
 """
+
 import logging
 
 from botocore.exceptions import ClientError
 
-from .aws.aws_setting import AwsSetting
+from ..aws.aws_local_setting_getter import AwsLocalSettingGetter
+from ..aws.aws_setting import AwsSetting
 from .bucket import Bucket
 from .s3exception import RGN_NAME, Permission, TypeException
 
@@ -24,7 +26,7 @@ class S3Acl:
         self.aws_client = aws_s3_client
         self.__aws_setting = aws_settings
         self.indice_region = -1
-        self.initial_region = self.__aws_setting.get_region()
+        self.initial_region = AwsLocalSettingGetter().get_region()
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.__aws_setting.setup_config(self.initial_region)
@@ -34,6 +36,7 @@ class S3Acl:
 
         :param bucket: bucket to check in aws s3 storage
         """
+
         if not isinstance(bucket, Bucket):
             raise ValueError("you must send a bucket object")
 
@@ -51,6 +54,7 @@ class S3Acl:
         and check it
         :return dict
         """
+
         s3_client = self.aws_client
         acl_perm_response = {
             "permission": Permission.AccessDenied,
@@ -144,67 +148,63 @@ def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
         "private": False,
         "public-read": False,
         "public-read-write": False,
+        "public-write-acp": False,
+        "public-write": False,
+        "public-read-acp": False,
         "aws-exec-read": False,
         "authenticated-read": False,
         "log-delivery-write": False,
     }
 
-    type_permission = {
-        "READ": "",
-        "WRITE": "",
-    }
     # verifed if the bucket is private
     if len(acl["Grants"]) == 1 or access == Permission.AccessDenied:
-
-        result_permissions = {
-            "Owner_ID": "",
-            "private": True,
-            "public-read": False,
-            "public-read-write": False,
-            "aws-exec-read": False,
-            "authenticated-read": False,
-            "log-delivery-write": False,
-        }
+        result_permissions["private"] = True
     else:
         # for any element in grant check if bucket acl is
         # public-read public read and write or user authentication
 
         for grant in acl["Grants"]:
             try:
-                if (
-                    grant["Grantee"]["URI"]
-                    == "http://acs.amazonaws.com/groups/global/AllUsers"
-                ):
+                if grant["Grantee"]["Type"] == "Group":
+                    acl_url = grant["Grantee"]["URI"]
+                    if (
+                        acl_url
+                        == "http://acs.amazonaws.com/groups/global/AllUsers"
+                    ):
+                        result_permissions = access_control_un_auth_user(
+                            result_permissions, grant
+                        )
 
-                    type_permission[
-                        "URI"
-                    ] = "http://acs.amazonaws.com/groups/global/AllUsers"
-
-                    if grant["Permission"] == "READ":
-                        type_permission["READ"] = "READ"
-                    else:
-                        type_permission["WRITE"] = "WRITE"
-                elif (
-                    grant["Grantee"]["URI"]
-                    == "http://acs.amazonaws.com/groups/global/"
-                    "AuthenticatedUsers"
-                ):
-                    result_permissions["authenticated-read"] = True
-                elif (
-                    grant["Grantee"]["URI"]
-                    == "http://acs.amazonaws.com/groups/s3/"
-                    "LogDelivery"
-                ):
-                    result_permissions["log-delivery-write"] = True
+                    elif (
+                        acl_url == "http://acs.amazonaws.com/groups/global/"
+                        "AuthenticatedUsers"
+                    ):
+                        result_permissions["authenticated-read"] = True
+                    elif (
+                        acl_url == "http://acs.amazonaws.com/groups/s3/"
+                        "LogDelivery"
+                    ):
+                        result_permissions["log-delivery-write"] = True
             except KeyError:
                 pass
 
-        if type_permission["READ"] and type_permission["WRITE"]:
-            result_permissions["public-read-write"] = True
-        elif type_permission["READ"] and not type_permission["WRITE"]:
-            result_permissions["public-read"] = True
-
         result_permissions["Owner_ID"] = acl["Owner"]["ID"]
+
+    return result_permissions
+
+
+def access_control_un_auth_user(result_permissions, permission):
+    """"""
+    if permission["Permission"] == "FULL_CONTROL":
+        result_permissions["public-read-write"] = True
+    elif permission["Permission"] == "READ":
+        result_permissions["public-read"] = True
+    elif permission["Permission"] == "READ_ACP":
+        result_permissions["public-read-acp"] = True
+    elif permission["Permission"] == "WRITE":
+        result_permissions["public-write"] = True
+    elif permission["Permission"] == "WRITE_ACP":
+        result_permissions["public-write-acp"] = True
 
     return result_permissions
 
@@ -224,6 +224,9 @@ def display_bucket_to_dict(bucket: Bucket) -> dict:
         "ACL: private": bucket.acl_found["private"],
         "ACL: public-read": bucket.acl_found["public-read"],
         "ACL: public-read-write": bucket.acl_found["public-read-write"],
+        "ACL: public-write-acp": bucket.acl_found["public-write-acp"],
+        "ACL: public-write": bucket.acl_found["public-write"],
+        "ACL: public-read-acp": bucket.acl_found["public-read-acp"],
         "ACL: aws-exec-read": bucket.acl_found["aws-exec-read"],
         "ACL: authenticated-read": bucket.acl_found["authenticated-read"],
         "ACL: log-delivery-write": bucket.acl_found["log-delivery-write"],

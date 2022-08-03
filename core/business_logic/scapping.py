@@ -132,8 +132,8 @@ def scrapping(name):
                 logging.info(f"Bucket <{name}> || Don't Exist")
                 return None
 
-    except Exception:
-        logging.warning(f"Connection Error in bucket <{name}> !!")
+    except Exception as e:
+        logging.warning(e)
 
 
 def scrapping_buckets(file):

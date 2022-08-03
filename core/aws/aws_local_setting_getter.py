@@ -4,7 +4,7 @@
 """
 from dataclasses import dataclass
 
-from core.aws.aws_setting_checker import AwsSettingChecker
+from .aws_setting_checker import AwsSettingChecker
 
 
 @dataclass()

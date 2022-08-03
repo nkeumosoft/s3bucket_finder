@@ -5,10 +5,10 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from requests.exceptions import ConnectionError
 
-from business_logic.aws_setting import AwsSetting
-from business_logic.service import S3Acl, display_bucket_to_dict
-from utils.createcsvfile import make_csv_with_pandas
-from utils.scapping import scrapping, scrapping_buckets
+from _utils.createcsvfile import make_csv_with_pandas
+from core.aws.aws_setting import AwsSetting
+from core.business_logic.scapping import scrapping, scrapping_buckets
+from core.business_logic.service import S3Acl, display_bucket_to_dict
 
 
 def main():
@@ -127,9 +127,11 @@ def main():
             aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
 
             if args.bucket_name is not None:
+                logging.error(list_of_bucket)
                 aws_s3_acl.check_read_acl_permissions(list_of_bucket)
 
                 bucket_acl_value = aws_s3_acl.get_bucket_acl(list_of_bucket)
+
                 dict_to_save_csv = display_bucket_to_dict(bucket_acl_value)
 
                 make_csv_with_pandas([dict_to_save_csv], file_name=file_output)
