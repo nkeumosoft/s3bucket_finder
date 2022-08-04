@@ -104,8 +104,9 @@ def main():
         logging.info("Configuration of the config file done.")
 
     elif args.mode == "setup-cred":
-        settings.setup_credentials(
-            the_id=args.aws_access_key_id, the_key=args.aws_secret_access_key
+        settings.set_credentials(
+            access_key=args.aws_access_key_id,
+            secret_access_key=args.aws_secret_access_key,
         )
         logging.info("Configuration of the credentials file done.")
 

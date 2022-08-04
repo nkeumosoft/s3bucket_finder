@@ -2,47 +2,149 @@
     Author: Edmond Ghislain MAKOLLE
 
 """
-
+import logging
 import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional, Tuple
 
-from core.aws.aws_setting_checker import AwsSettingChecker
-from interface import setting
+from core.business_logic.setting import Setting
 
 
-class AwsSetting(setting.Setting):
+def _aws_folder_exist() -> Tuple[bool, str]:
+    """Return the statut of the folder, either exist or not, and the path of
+    the folder either exist.
+
+    :return: tuple[bool, str]
+    """
+    home = Path.home()
+    directory_aws = os.path.join(str(home), ".aws/")
+    aws_folder = os.path.isdir(directory_aws)
+    return aws_folder, directory_aws
+
+
+def _check_existence(path: str, file: str) -> Tuple[bool, str]:
+    """Checks if the file name entered in parameter exists in the given
+    directory.
+
+    :param path: (String) path of the directory.
+    :param file: (String) name of the file.
+    :return: tuple
+    """
+    file_path = os.path.join(path, file)
+    aws_file_exist = Path(file_path).is_file()
+    return aws_file_exist, file_path
+
+
+def _aws_config_file_exist() -> Tuple[bool, str]:
+    """Return the statut of the config file, either exist or not, and the path
+    of the file either exist.
+
+    :return: tuple[bool, str]
+    """
+    _, _path = _aws_folder_exist()
+    return _check_existence(_path, "config")
+
+
+def _aws_credentials_file_exist() -> Tuple[bool, str]:
+    """Return the statut of the credentials file, either exist or not, and the
+    path of the file either exist.
+
+    :return: tuple[bool, str]
+    """
+    _, _path = _aws_folder_exist()
+    return _check_existence(_path, "credentials")
+
+
+@dataclass()
+class AwsSetting(Setting):
     """Class for configuration of local AWS setting."""
 
-    def __init__(self):
-        """Initialization of the AWS Setting Class."""
-        self.__region = None
-        self.__key_id = None
-        self.__key_access = None
-        self.__output = None
-        self.__checker = AwsSettingChecker()
+    __region: str
+    __access_key_id: str
+    __secret_access_key: str
+    __output: str
 
     @property
-    def region(self):
-        """Getter region."""
-        print("Getting region")
-        return self.__region
+    def region(self) -> Optional[str]:
+        """Getter current region configuration.
+
+        :return: str | None
+        """
+        logging.info("Getting Region")
+        status, _path = _aws_config_file_exist()
+        if status:
+            with open(_path, "r") as file:
+                for line in file.readlines():
+                    if "region" in line:
+                        self.__region = line.split("=")[1].rstrip("\n")
+                        return self.__region
+
+        return None
 
     @property
-    def aws_access_key_id(self):
-        """Getter AWS Access Key Id."""
-        print("Getting AWS Access Key Id")
-        return self.__key_id
+    def output(self) -> Optional[str]:
+        """Getter current output configuration.
+
+        :return: str | None
+        """
+        logging.info("Getting Output")
+        status, _path = _aws_config_file_exist()
+        if status:
+            with open(_path, "r") as file:
+                for line in file.readlines():
+                    if "output" in line:
+                        return line.split("=")[1].rstrip("\n")
+
+        return None
 
     @property
-    def aws_secret_access_key(self):
-        """Getter AWS Secret Access Key."""
-        print("Getting AWS Secret Access Key")
-        return self.__key_access
+    def get_credentials(self) -> Optional[Tuple[str, str]]:
+        """Getter account credentials.
 
-    @property
-    def output(self):
-        """Getter output."""
-        print("Getting Output")
-        return self.__output
+        :return:
+        """
+        logging.info("Getting Credentials")
+
+        status, _path = _aws_credentials_file_exist()
+        if status:
+            with open(_path, "r") as file:
+                for line in file.readlines():
+                    if "aws_access_key_id" in line:
+                        self.__access_key_id = line.split("=")[1].rstrip("\n")
+
+                    if "aws_secret_access_key" in line:
+                        self.__secret_access_key = line.split("=")[1].rstrip(
+                            "\n"
+                        )
+                return self.__access_key_id, self.__secret_access_key
+
+        return None
+
+    def set_credentials(self, access_key: str, secret_access_key: str) -> None:
+        """Configure the credentials file of the AWS directory, if the
+        directory does not exist, it creates it.
+
+        :param access_key: (String) Represents the AWS Access Key id.
+        :param secret_access_key: (String) Represents the AWS Secret Access
+         Key.
+        :return: None
+        """
+        logging.info("Setting Credentials")
+
+        self.__secret_access_key = secret_access_key
+        self.__access_key_id = access_key
+
+        status, _path = _aws_folder_exist()
+        _, file_credentials_path = _aws_credentials_file_exist()
+
+        if not status:
+            os.mkdir(_path)  # aws folder created
+
+        with open(file_credentials_path, "w") as file:
+            file.write("[default]\n")
+            file.write(f"aws_access_key_id={self.__access_key_id}\n")
+            file.write(f"aws_secret_access_key={self.__secret_access_key}\n")
 
     def setup_config(self, region: str, output: str = "json") -> None:
         """Configure the config file of the AWS directory, if the directory
@@ -53,32 +155,18 @@ class AwsSetting(setting.Setting):
                         format. By default, it's set at json.
         :return: None
         """
-        statut, _path = self.__checker.aws_folder_exist()
-        _, file_config_path = self.__checker.aws_config_file_exist()
-        if not statut:
-            os.mkdir(_path)  # aws folder created
-        with open(file_config_path, "w") as file:
-            file.write("[default]\n")
-            file.write(f"region={region}\n")
-            file.write(f"output={output}\n")
+        logging.info("Getting Configuration")
+
         self.__region = region
         self.__output = output
 
-    def setup_credentials(self, the_id: str, the_key: str) -> None:
-        """Configure the credentials file of the AWS directory, if the
-        directory does not exist, it creates it.
+        statut, _path = _aws_folder_exist()
+        _, file_config_path = _aws_config_file_exist()
 
-        :param the_id: (String) Represents the AWS Access Key id.
-        :param the_key: (String) Represents the AWS Secret Access Key.
-        :return: None
-        """
-        status, _path = self.__checker.aws_folder_exist()
-        _, file_credentials_path = self.__checker.aws_credentials_file_exist()
-        if not status:
+        if not statut:
             os.mkdir(_path)  # aws folder created
-        with open(file_credentials_path, "w") as file:
+
+        with open(file_config_path, "w") as file:
             file.write("[default]\n")
-            file.write(f"aws_access_key_id={the_id}\n")
-            file.write(f"aws_secret_access_key={the_key}\n")
-        self.__key_id = the_id
-        self.__key_access = the_key
+            file.write(f"region={self.__region}\n")
+            file.write(f"output={self.__output}\n")

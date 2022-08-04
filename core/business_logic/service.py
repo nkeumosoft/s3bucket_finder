@@ -7,7 +7,6 @@ import logging
 
 from botocore.exceptions import ClientError
 
-from ..aws.aws_local_setting_getter import AwsLocalSettingGetter
 from ..aws.aws_setting import AwsSetting
 from .bucket import Bucket
 from .s3exception import RGN_NAME, Permission, TypeException
@@ -26,7 +25,7 @@ class S3Acl:
         self.aws_client = aws_s3_client
         self.__aws_setting = aws_settings
         self.indice_region = -1
-        self.initial_region = AwsLocalSettingGetter().get_region()
+        self.initial_region = aws_settings.region
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.__aws_setting.setup_config(self.initial_region)
