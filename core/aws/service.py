@@ -7,10 +7,10 @@ import logging
 
 from botocore.exceptions import ClientError
 
-from ..aws.aws_local_setting_getter import AwsLocalSettingGetter
-from ..aws.aws_setting import AwsSetting
-from .bucket import Bucket
-from .s3exception import RGN_NAME, Permission, TypeException
+from core.aws.aws_local_setting_getter import AwsLocalSettingGetter
+from core.aws.aws_setting import AwsSetting
+from core.business_logic.bucket import Bucket
+from core.business_logic.s3exception import RGN_NAME, Permission, TypeException
 
 
 class S3Acl:
@@ -195,16 +195,18 @@ def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
 
 def access_control_un_auth_user(result_permissions, permission):
     """"""
-    if permission["Permission"] == "FULL_CONTROL":
-        result_permissions["public-read-write"] = True
-    elif permission["Permission"] == "READ":
-        result_permissions["public-read"] = True
-    elif permission["Permission"] == "READ_ACP":
-        result_permissions["public-read-acp"] = True
-    elif permission["Permission"] == "WRITE":
-        result_permissions["public-write"] = True
-    elif permission["Permission"] == "WRITE_ACP":
-        result_permissions["public-write-acp"] = True
+
+    result_permissions["public-read-write"] = (
+        permission["Permission"] == "FULL_CONTROL"
+    )
+    result_permissions["public-read"] = permission["Permission"] == "READ"
+    result_permissions["public-read-acp"] = (
+        permission["Permission"] == "READ_ACP"
+    )
+    result_permissions["public-write"] = permission["Permission"] == "WRITE"
+    result_permissions["public-write-acp"] = (
+        permission["Permission"] == "WRITE_ACP"
+    )
 
     return result_permissions
 

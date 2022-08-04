@@ -8,7 +8,7 @@ from requests.exceptions import ConnectionError
 from _utils.createcsvfile import make_csv_with_pandas
 from core.aws.aws_setting import AwsSetting
 from core.business_logic.scrapping import scrapping, scrapping_file
-from core.business_logic.service import S3Acl, display_bucket_to_dict
+from s3bucket_finder.core.aws.service import S3Acl, display_bucket_to_dict
 
 
 def main():
@@ -108,7 +108,9 @@ def main():
             the_id=args.aws_access_key_id, the_key=args.aws_secret_access_key
         )
         # Modify print by logging
-        print("Configuration of the credentials file done.")
+        print(
+            "Configuration of the credentials fi                                  le done."
+        )
 
     elif args.mode == "scan":
         if args.bucket_name is not None:

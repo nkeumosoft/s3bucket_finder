@@ -29,12 +29,15 @@ RGN_NAME = [
 
 
 class TypeException(Enum):
-    PermanentRedirect = "PermanentRedirect"
-    IllegalLocationConstraintException = "IllegalLocationConstraintException"
+    """aws type exception."""
+
+    REDIRECTION = "PermanentRedirect"
+    ILLEGAL_LOCATION = "IllegalLocationConstraintException"
 
 
 class Permission(Enum):
+    """aws type exception."""
 
-    AccessDenied = "AccessDenied"
-    NoSuchBucket = "NoSuchBucket"
-    ListBucketResult = "ListBucketResult"
+    ACCESS_DENIED = "AccessDenied"
+    NO_SUCH_BUCKET = "NoSuchBucket"
+    LIST_BUCKET_RESULT = "ListBucketResult"
