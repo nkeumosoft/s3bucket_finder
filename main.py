@@ -1,3 +1,6 @@
+"""
+    Author: Edmond Ghislain MAKOLLE and Noutcheu Libert
+"""
 import argparse
 import logging
 
@@ -108,9 +111,7 @@ def main():
             the_id=args.aws_access_key_id, the_key=args.aws_secret_access_key
         )
         # Modify print by logging
-        print(
-            "Configuration of the credentials fi                                                            le done."
-        )
+        print("Configuration of the credentials file done.")
 
     elif args.mode == "scan":
         if args.bucket_name is not None:
