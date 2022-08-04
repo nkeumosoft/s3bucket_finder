@@ -109,7 +109,7 @@ def main():
         )
         # Modify print by logging
         print(
-            "Configuration of the credentials fi                                  le done."
+            "Configuration of the credentials fi                                                                    le done."
         )
 
     elif args.mode == "scan":
