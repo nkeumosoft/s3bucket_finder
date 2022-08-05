@@ -4,7 +4,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Any, Optional
 
 
 class Setting(ABC):
@@ -18,4 +18,8 @@ class Setting(ABC):
 
     @abstractmethod
     def region(self) -> Optional[str]:
+        pass
+
+    @abstractmethod
+    def authentication(self, access_key: str, secret_access_key: str) -> Any:
         pass
