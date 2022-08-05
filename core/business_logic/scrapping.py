@@ -13,7 +13,7 @@ from requests import get
 from core.business_logic.bucket import Bucket
 
 URL = "https://s3.amazonaws.com"
-logging.basicConfig(format="%[(levelname)s] %(message)s", level=logging.INFO)
+logging.basicConfig(format="[%(levelname)s] : %(message)s", level=logging.INFO)
 
 
 def is_status_200(bucket_name: str, location: str, endpoint: str) -> Bucket:

@@ -12,9 +12,6 @@ from core.business_logic.service import S3Acl, display_bucket_to_dict
 
 
 def main():
-    settings = AwsSetting()
-    list_of_bucket = None
-
     parser = argparse.ArgumentParser(
         description="s3bucket_finder: Analysis of " "Buckets by AfroCode\n",
         prog="s3bucket_finder",
@@ -96,6 +93,10 @@ def main():
     args = parser.parse_args()
 
     print("\n")  # Just for presentation
+
+    settings = AwsSetting("", "", "", "")
+    list_of_bucket = None
+
     if args.mode == "setup-config":
         if args.output != "json":
             settings.setup_config(region=args.region, output=args.output)
