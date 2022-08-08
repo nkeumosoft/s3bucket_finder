@@ -13,7 +13,7 @@ from core.business_logic.service import S3Acl, display_bucket_to_dict
 
 def main():
     parser = argparse.ArgumentParser(
-        description="s3bucket_finder: Analysis of " "Buckets by AfroCode\n",
+        description="s3bucket_finder: Analysis of Buckets by AfroCode\n",
         prog="s3bucket_finder",
         allow_abbrev=False,
     )
@@ -94,14 +94,14 @@ def main():
 
     print("\n")  # Just for presentation
 
-    settings = AwsSetting("", "", "", "")
+    settings = AwsSetting()
     list_of_bucket = None
 
     if args.mode == "setup-config":
         if args.output != "json":
-            settings.setup_config(region=args.region, output=args.output)
+            settings.config = (args.region, args.output)
         else:
-            settings.setup_config(region=args.region)
+            settings.config = (args.region,)
         logging.info("Configuration of the config file done.")
 
     elif args.mode == "setup-cred":
