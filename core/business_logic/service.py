@@ -7,7 +7,6 @@ import logging
 
 from botocore.exceptions import ClientError
 
-from ..aws.aws_local_setting_getter import AwsLocalSettingGetter
 from ..aws.aws_setting import AwsSetting
 from .bucket import Bucket
 from .s3exception import RGN_NAME, Permission, TypeException
@@ -26,10 +25,10 @@ class S3Acl:
         self.aws_client = aws_s3_client
         self.__aws_setting = aws_settings
         self.indice_region = -1
-        self.initial_region = AwsLocalSettingGetter().get_region()
+        self.initial_region = aws_settings.region
 
     def __exit__(self, exception_type, exception_value, traceback):
-        self.__aws_setting.setup_config(self.initial_region)
+        self.__aws_setting.config = (self.initial_region,)
 
     def check_head_bucket(self, bucket: Bucket) -> bool:
         """check if bucket exist.
@@ -124,9 +123,7 @@ class S3Acl:
                 # then  the region  is not good, and we change it
                 self.indice_region += 1
                 if self.indice_region <= len(RGN_NAME) - 1:
-                    self.__aws_setting.setup_config(
-                        RGN_NAME[self.indice_region]
-                    )
+                    self.__aws_setting.config = (RGN_NAME[self.indice_region],)
                     self.get_bucket_acl(bucket, region)
 
         except ClientError as aws_error:
