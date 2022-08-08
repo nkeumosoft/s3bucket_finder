@@ -5,9 +5,20 @@
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any, Optional, Tuple
 
 from core.business_logic.setting import Setting
+
+
+def check_digitalocean_credentials_file() -> Tuple[bool, str]:
+    """Checks if the file credentials configuration of digital ocean exists.
+
+    :return: Tuple[Boolean, String]
+    """
+    file_path = os.path.join(str(Path.home()), ".digitalocean")
+    digitalocean_file_exist = Path(file_path).is_file()
+    return digitalocean_file_exist, file_path
 
 
 @dataclass()
@@ -50,8 +61,14 @@ class DigitalOceanSetting(Setting):
         """
         logging.info("Setting Digital Ocean Credentials")
 
-        os.environ["SPACES_KEY"] = access_key
-        os.environ["SPACES_SECRET"] = secret_access_key
+        status, _path = check_digitalocean_credentials_file()
+
+        if not status:
+            os.mkdir(_path)
+
+        with open(_path, "w") as file:
+            file.write(f"SPACES_KEY={access_key}\n")
+            file.write(f"SPACES_SECRET={secret_access_key}\n")
 
     def get_credentials(self) -> Optional[tuple]:
         """Function that retrieves access key and secret access from
@@ -61,10 +78,20 @@ class DigitalOceanSetting(Setting):
         """
         logging.info("Getting Digital Ocean Credentials")
 
-        self.__access_key = os.getenv("SPACES_KEY")
-        self.__secret_key = os.getenv("SPACES_KEY")
+        status, _path = check_digitalocean_credentials_file()
 
-        return self.__access_key, self.__secret_key
+        if status:
+            with open(_path, "r") as file:
+                for line in file.readlines():
+                    if "SPACES_KEY" in line:
+                        self.__access_key = line.split("=")[1].rstrip("\n")
+
+                    if "SPACES_SECRET" in line:
+                        self.__secret_key = line.split("=")[1].rstrip("\n")
+
+                return self.__access_key, self.__secret_key
+
+        return None
 
     def authentication(self, access_key: str, secret_access_key: str) -> Any:
         pass
