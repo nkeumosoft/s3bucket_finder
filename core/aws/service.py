@@ -7,13 +7,13 @@ import logging
 
 from botocore.exceptions import ClientError
 
-from ..aws.aws_setting import AwsSetting
-from .bucket import Bucket
-from .s3exception import RGN_NAME, Permission, TypeException
+from core.aws.aws_setting import AwsSetting
+from core.business_logic.bucket import Bucket
+from core.business_logic.exception import RGN_NAME, Permission, TypeException
 
 
 class S3Acl:
-    """A class to represent  aws service to check acl property for a bucket."""
+    """A class to represent aws service to check acl property for a bucket."""
 
     def __init__(
         self,
@@ -42,6 +42,7 @@ class S3Acl:
         try:
             self.aws_client.head_bucket(Bucket=bucket.get_name)
         except ClientError as error:
+
             if error.response["Error"]["Code"] == "404":
                 return False
         return True
@@ -56,11 +57,12 @@ class S3Acl:
 
         s3_client = self.aws_client
         acl_perm_response = {
-            "permission": Permission.AccessDenied,
+            "permission": Permission.ACCESS_DENIED,
             "acl_property": None,
         }
 
         if self.check_head_bucket(bucket):
+
             try:
 
                 acl_properties = s3_client.get_bucket_acl(
@@ -68,20 +70,21 @@ class S3Acl:
                 )
 
                 acl_perm_response = {
-                    "permission": Permission.ListBucketResult,
+                    "permission": Permission.LIST_BUCKET_RESULT,
                     "acl_property": acl_properties,
                 }
 
                 return acl_perm_response
 
             except ClientError as aws_error:
+
                 if (aws_error.response["Error"]["Code"] == "AccessDenied") or (
                     aws_error.response["Error"]["Code"] == "AllAccessDisabled"
                 ):
-                    acl_perm_response["permission"] = Permission.AccessDenied
+                    acl_perm_response["permission"] = Permission.ACCESS_DENIED
                 elif (
                     aws_error.response["Error"]["Code"]
-                    == TypeException.IllegalLocationConstraintException
+                    == TypeException.ILLEGAL_LOCATION
                 ):
                     acl_perm_response[
                         "permission"
@@ -92,7 +95,9 @@ class S3Acl:
 
     def get_acl_list_of_bucket(self) -> None:
         """get a bucket acl property for a list of bucket."""
+        logging.info(self.list_of_bucket)
         for bucket in self.list_of_bucket:
+            logging.info(bucket)
             self.get_bucket_acl(bucket)
 
     def get_bucket_acl(self, bucket, region="us‑east‑1") -> Bucket:
@@ -105,19 +110,23 @@ class S3Acl:
 
         try:
             responses_of_read_acl = self.check_read_acl_permissions(bucket)
-            if responses_of_read_acl["permission"] == Permission.AccessDenied:
+
+            if responses_of_read_acl["permission"] == Permission.ACCESS_DENIED:
                 acl: dict = {"Grants": {}}
-                bucket.acl_found = bucket_human_read_acl(
-                    acl, Permission.AccessDenied
+
+                bucket.acl_found = list_of_bucket_human_read_acl(
+                    acl, Permission.ACCESS_DENIED
                 )
+
             elif (
                 responses_of_read_acl["permission"]
-                == Permission.ListBucketResult
+                == Permission.LIST_BUCKET_RESULT
             ):
-                bucket.acl_found = bucket_human_read_acl(
+                bucket.acl_found = list_of_bucket_human_read_acl(
                     responses_of_read_acl["acl_property"],
-                    Permission.ListBucketResult,
+                    Permission.LIST_BUCKET_RESULT,
                 )
+
             else:
                 # if the access it is not allow or denied
                 # then  the region  is not good, and we change it
@@ -127,11 +136,14 @@ class S3Acl:
                     self.get_bucket_acl(bucket, region)
 
         except ClientError as aws_error:
+
             logging.error(aws_error)
         return bucket
 
 
-def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
+def list_of_bucket_human_read_acl(
+    acl: dict, access=Permission.LIST_BUCKET_RESULT
+):
     """transform an Amazon s3 storage bucket acl properties in to human-
     readable.
 
@@ -153,55 +165,64 @@ def bucket_human_read_acl(acl: dict, access=Permission.ListBucketResult):
         "log-delivery-write": False,
     }
 
-    # verifed if the bucket is private
-    if len(acl["Grants"]) == 1 or access == Permission.AccessDenied:
+    # check if the bucket is private
+    if len(acl["Grants"]) == 1 or access == Permission.ACCESS_DENIED:
         result_permissions["private"] = True
-    else:
-        # for any element in grant check if bucket acl is
-        # public-read public read and write or user authentication
 
-        for grant in acl["Grants"]:
-            try:
-                if grant["Grantee"]["Type"] == "Group":
-                    acl_url = grant["Grantee"]["URI"]
-                    if (
-                        acl_url
-                        == "http://acs.amazonaws.com/groups/global/AllUsers"
-                    ):
-                        result_permissions = access_control_un_auth_user(
-                            result_permissions, grant
-                        )
+        return result_permissions
 
-                    elif (
-                        acl_url == "http://acs.amazonaws.com/groups/global/"
-                        "AuthenticatedUsers"
-                    ):
-                        result_permissions["authenticated-read"] = True
-                    elif (
-                        acl_url == "http://acs.amazonaws.com/groups/s3/"
-                        "LogDelivery"
-                    ):
-                        result_permissions["log-delivery-write"] = True
-            except KeyError:
-                pass
+    # for any element in grant check if bucket acl is
 
-        result_permissions["Owner_ID"] = acl["Owner"]["ID"]
+    # public-read public read and write or user authentication
+
+    for grant in acl["Grants"]:
+        try:
+            if grant["Grantee"]["Type"] == "Group":
+                result_permissions = display_acl_properties(
+                    grant, result_permissions
+                )
+
+        except KeyError:
+            pass
+
+    result_permissions["Owner_ID"] = acl["Owner"]["ID"]
 
     return result_permissions
 
 
-def access_control_un_auth_user(result_permissions, permission):
+def display_acl_properties(grant: dict, result_permissions: dict) -> dict:
     """"""
-    if permission["Permission"] == "FULL_CONTROL":
-        result_permissions["public-read-write"] = True
-    elif permission["Permission"] == "READ":
-        result_permissions["public-read"] = True
-    elif permission["Permission"] == "READ_ACP":
-        result_permissions["public-read-acp"] = True
-    elif permission["Permission"] == "WRITE":
-        result_permissions["public-write"] = True
-    elif permission["Permission"] == "WRITE_ACP":
-        result_permissions["public-write-acp"] = True
+
+    acl_url = grant["Grantee"]["URI"]
+    if acl_url == "http://acs.amazonaws.com/groups/global/AllUsers":
+        result_permissions = access_control_unauthenticated_user(
+            result_permissions, grant
+        )
+
+    result_permissions["authenticated-read"] = (
+        acl_url == "http://acs.amazonaws.com/groups/global/AuthenticatedUsers"
+    )
+
+    result_permissions["log-delivery-write"] = (
+        acl_url == "http://acs.amazonaws.com/groups/s3/LogDelivery"
+    )
+
+    return result_permissions
+
+
+def access_control_unauthenticated_user(result_permissions, permission):
+    """"""
+    result_permissions["public-read-write"] = (
+        permission["Permission"] == "FULL_CONTROL"
+    )
+    result_permissions["public-read"] = permission["Permission"] == "READ"
+    result_permissions["public-read-acp"] = (
+        permission["Permission"] == "READ_ACP"
+    )
+    result_permissions["public-write"] = permission["Permission"] == "WRITE"
+    result_permissions["public-write-acp"] = (
+        permission["Permission"] == "WRITE_ACP"
+    )
 
     return result_permissions
 
@@ -213,7 +234,7 @@ def display_bucket_to_dict(bucket: Bucket) -> dict:
     :param: bucket: Bucket
     :return field_head:dict
     """
-    field_head = {
+    field_head: dict = {
         "bucket_name": bucket.get_name,
         "access browser": bucket.get_access_browser,
         "url": bucket.get_url,
