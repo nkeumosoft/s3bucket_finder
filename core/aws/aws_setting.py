@@ -6,7 +6,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from core.business_logic.setting import Setting
 
@@ -60,10 +60,10 @@ def _aws_credentials_file_exist() -> Tuple[bool, str]:
 class AwsSetting(Setting):
     """Class for configuration of local AWS setting."""
 
-    __region: str
-    __access_key_id: str
-    __secret_access_key: str
-    __output: str
+    __region: Optional[str] = None
+    __access_key_id: Optional[str] = None
+    __secret_access_key: Optional[str] = None
+    __output: Optional[str] = None
 
     @property
     def region(self) -> Optional[str]:
@@ -71,7 +71,7 @@ class AwsSetting(Setting):
 
         :return: str | None
         """
-        logging.info("Getting Region")
+        logging.info("Getting AWS Region")
         status, _path = _aws_config_file_exist()
         if status:
             with open(_path, "r") as file:
@@ -82,29 +82,12 @@ class AwsSetting(Setting):
 
         return None
 
-    @property
-    def output(self) -> Optional[str]:
-        """Getter current output configuration.
-
-        :return: str | None
-        """
-        logging.info("Getting Output")
-        status, _path = _aws_config_file_exist()
-        if status:
-            with open(_path, "r") as file:
-                for line in file.readlines():
-                    if "output" in line:
-                        return line.split("=")[1].rstrip("\n")
-
-        return None
-
-    @property
-    def get_credentials(self) -> Optional[Tuple[str, str]]:
+    def get_credentials(self) -> Optional[Tuple]:
         """Getter account credentials.
 
-        :return:
+        :return: tuple(str, str) | None
         """
-        logging.info("Getting Credentials")
+        logging.info("Getting AWS Credentials")
 
         status, _path = _aws_credentials_file_exist()
         if status:
@@ -128,10 +111,7 @@ class AwsSetting(Setting):
          Key.
         :return: None
         """
-        logging.info("Setting Credentials")
-
-        self.__secret_access_key = args[0]
-        self.__access_key_id = args[1]
+        logging.info("Setting AWS Credentials")
 
         status, _path = _aws_folder_exist()
         _, file_credentials_path = _aws_credentials_file_exist()
@@ -141,22 +121,47 @@ class AwsSetting(Setting):
 
         with open(file_credentials_path, "w") as file:
             file.write("[default]\n")
-            file.write(f"aws_access_key_id={self.__access_key_id}\n")
-            file.write(f"aws_secret_access_key={self.__secret_access_key}\n")
+            file.write(f"aws_access_key_id={args[0]}\n")
+            file.write(f"aws_secret_access_key={args[0]}\n")
 
-    def setup_config(self, region: str, output: str = "json") -> None:
+    @property
+    def config(self):
+        """
+
+        :return:
+        """
+        logging.info("Getting AWS Configuration")
+
+        status, _path = _aws_config_file_exist()
+        if status:
+            with open(_path, "r") as file:
+                for line in file.readlines():
+                    if "output" in line:
+                        self.__output = line.split("=")[1].rstrip("\n")
+
+                return self.region, self.__output
+
+        return None
+
+    @config.setter
+    def config(self, tupl: tuple) -> None:
         """Configure the config file of the AWS directory, if the directory
         does not exist, it creates it.
 
-        :param region: (String) Represents the AWS region.
-        :param output: (String) Represents the AWS CLI output
-                        format. By default, it's set at json.
+        :param tupl: (Tuple) represent data to set, the AWS region and/or
+        the AWS CLI output format. By default, the output it's set at json.
         :return: None
         """
-        logging.info("Getting Configuration")
+        logging.info("Setting AWS Configuration")
 
-        self.__region = region
-        self.__output = output
+        region = None
+        output = "json"
+
+        if len(tupl) > 1:
+            region = tupl[0]
+            output = tupl[1]
+        else:
+            region = tupl[0]
 
         statut, _path = _aws_folder_exist()
         _, file_config_path = _aws_config_file_exist()
@@ -166,5 +171,8 @@ class AwsSetting(Setting):
 
         with open(file_config_path, "w") as file:
             file.write("[default]\n")
-            file.write(f"region={self.__region}\n")
-            file.write(f"output={self.__output}\n")
+            file.write(f"region={region}\n")
+            file.write(f"output={output}\n")
+
+    def authentication(self, access_key: str, secret_access_key: str) -> Any:
+        pass
