@@ -5,14 +5,15 @@
 import logging
 import os
 from pathlib import Path
+from typing import List, Optional
 
-import requests
 import xmltodict
+from requests import get
 
 from core.business_logic.bucket import Bucket
 
 URL = "https://s3.amazonaws.com"
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+logging.basicConfig(format="[%(levelname)s] : %(message)s", level=logging.INFO)
 
 
 def is_status_200(bucket_name: str, location: str, endpoint: str) -> Bucket:
@@ -41,16 +42,22 @@ def is_status_403(bucket_name: str, location: str, endpoint: str) -> Bucket:
     return bucket
 
 
-def is_status_301(data, bucket_name: str):
+def is_status_301(data, bucket_name: str) -> Optional[Bucket]:
     """Log and return the bucket for the request status code 301.
 
     :param data: (Any) data content of a request.
     :param bucket_name: (String) name of the scrapped bucket.
-    :return: Bucket
+    :return: Bucket | None
     """
     endpoint = data["Error"]["Endpoint"]
     try:
-        response = requests.get(f"https://{endpoint}")
+        response = get(f"https://{endpoint}")
+
+        if response.status_code == 200:
+            return is_status_200(bucket_name, "US", endpoint)
+
+        else:
+            return is_status_403(bucket_name, "US", endpoint)
 
     except ConnectionError:
         logging.warning(
@@ -58,29 +65,27 @@ def is_status_301(data, bucket_name: str):
             f"bucket <{bucket_name}> (status=301)."
             f"Check your connexion and restart."
         )
-
-    else:
-        if response.status_code == 200:
-            return is_status_200(bucket_name, "US", endpoint)
-
-        else:
-            return is_status_403(bucket_name, "US", endpoint)
-    # return None
+    return None
 
 
-def is_status_400(data, bucket_name: str):
+def is_status_400(data, bucket_name: str) -> Optional[Bucket]:
     """Log and return the bucket for the request status code 400.
 
     :param data: (Any) data content of a request.
     :param bucket_name: (String) name of the scrapped bucket.
-    :return: Bucket
+    :return: Bucket | None
     """
     error = data["Error"]
     if error["Code"] == "IllegalLocationConstraintException":
         location = error["Message"].split(" ")[1]
         url = f"https://s3.{location}.amazonaws.com/{bucket_name}"
         try:
-            response = requests.get(url)
+            response = get(url)
+
+            if response.status_code == 200:
+                return is_status_200(bucket_name, location, url)
+            else:
+                return is_status_403(bucket_name, location, url)
 
         except ConnectionError:
             logging.warning(
@@ -89,33 +94,22 @@ def is_status_400(data, bucket_name: str):
                 f"Check your connexion and restart."
             )
 
-        else:
-            if response.status_code == 200:
-                return is_status_200(bucket_name, location, url)
-            else:
-                return is_status_403(bucket_name, location, url)
-
     else:
         logging.error(f"Invalid bucket name <{bucket_name}>")
         return None
 
+    return None
 
-def scrapping(bucket_name: str):
+
+def scrapping(bucket_name: str) -> Optional[Bucket]:
     """Checks the existence of the bucket name and provides information.
 
     :param bucket_name: (String) Represent the name of bucket.
     :return: Bucket | None
     """
     try:
-        response = requests.get(URL + "/" + bucket_name)
+        response = get(URL + "/" + bucket_name)
 
-    except ConnectionError:
-        logging.warning(
-            f"Connection error for the scan of bucket "
-            f"<{bucket_name}>. Check your connexion and restart."
-        )
-
-    else:
         if response.status_code == 200:
             return is_status_200(bucket_name, "US", URL + "/" + bucket_name)
 
@@ -137,6 +131,13 @@ def scrapping(bucket_name: str):
         if response.status_code == 301:
             return is_status_301(data, bucket_name)
 
+    except ConnectionError:
+        logging.warning(
+            f"Connection error for the scan of bucket "
+            f"<{bucket_name}>. Check your connexion and restart."
+        )
+    return None
+
 
 def check_file_exist(file: str) -> bool:
     """Checks if the file or the path to the file in parameter exists.
@@ -150,7 +151,7 @@ def check_file_exist(file: str) -> bool:
         return Path(os.path.join(os.getcwd(), file)).is_file()
 
 
-def scrapping_file(file: str):
+def scrapping_file(file: str) -> Optional[List[Bucket]]:
     """Checks the existence of buckets which are on a file and provides their
     public properties.
 

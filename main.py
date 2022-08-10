@@ -8,16 +8,13 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from requests.exceptions import ConnectionError
 
-from _utils.createcsvfile import make_csv_with_pandas
 from core.aws.aws_setting import AwsSetting
+from core.aws.service import S3Acl, display_bucket_to_dict
 from core.business_logic.scrapping import scrapping, scrapping_file
-from s3bucket_finder.core.aws.service import S3Acl, display_bucket_to_dict
+from utils.createcsvfile import save_data_to_csv_with_pandas
 
 
 def main():
-    settings = AwsSetting()
-    list_of_bucket = None
-
     parser = argparse.ArgumentParser(
         description="s3bucket_finder: Analysis of " "Buckets by AfroCode\n",
         prog="s3bucket_finder",
@@ -52,8 +49,7 @@ def main():
         "--rename",
         "-r",
         dest="rename",
-        help="Rename the output file the Default name "
-        "is <<rapport_aws_s3.csv>>",
+        help="Rename the output file the Default name " "is <<rapport_aws_s3.csv>>",
         required=False,
     )
 
@@ -98,27 +94,38 @@ def main():
     # Parse the args
     args = parser.parse_args()
 
+    print("\n")  # Just for presentation
+
+    settings = AwsSetting("", "", "", "")
+    list_of_bucket = None
+
     if args.mode == "setup-config":
         if args.output != "json":
             settings.setup_config(region=args.region, output=args.output)
         else:
             settings.setup_config(region=args.region)
-        # Modify print by logging
-        print("Configuration of the config file done.")
+        logging.info("Configuration of the config file done.")
 
     elif args.mode == "setup-cred":
-        settings.setup_credentials(
-            the_id=args.aws_access_key_id, the_key=args.aws_secret_access_key
+        settings.set_credentials(
+            access_key=args.aws_access_key_id,
+            secret_access_key=args.aws_secret_access_key,
         )
-        # Modify print by logging
-        print("Configuration of the credentials file done.")
+        logging.info("Configuration of the credentials file done.")
 
     elif args.mode == "scan":
         if args.bucket_name is not None:
+            logging.info(
+                f"The bucket scan <{args.bucket_name}> will start in a few "
+                f"seconds...\n"
+            )
             list_of_bucket = scrapping(args.bucket_name)
+            print("\n")  # Just for presentation
 
         if args.file is not None:
+            logging.info("The file scan will start in a few seconds...\n")
             list_of_bucket = scrapping_file(args.file)
+            print("\n")  # Just for presentation
 
         if args.rename is not None:
             file_output = args.rename
@@ -127,6 +134,7 @@ def main():
 
         try:
             aws_s3_client = boto3.client("s3")
+            logging.info("Generation of CSV file with ACL properties...\n")
             aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
 
             if args.bucket_name is not None:
@@ -137,7 +145,7 @@ def main():
 
                 dict_to_save_csv = display_bucket_to_dict(bucket_acl_value)
 
-                make_csv_with_pandas([dict_to_save_csv], file_name=file_output)
+                save_data_to_csv_with_pandas([dict_to_save_csv], file_name=file_output)
             else:
                 dict_to_save_csv = []
                 aws_s3_acl.get_acl_list_of_bucket()
@@ -147,21 +155,23 @@ def main():
                     tmp_bucket = display_bucket_to_dict(bucket)
                     dict_to_save_csv.append(tmp_bucket)
 
-                make_csv_with_pandas(dict_to_save_csv, file_name=file_output)
+                save_data_to_csv_with_pandas(dict_to_save_csv, file_name=file_output)
+            logging.info("It's over, the file is in the directory ~/ResultsCSV/")
 
         except NoCredentialsError:
-            print(
-                "Please make sure that you have a aws credential  config "
-                "before use this command "
+            logging.warning(
+                "Please make sure that you have a aws credential config "
+                "before use this command."
             )
         except ConnectionError:
             logging.warning("Connection not found")
 
         except Exception as except_errors:
-            logging.error(except_errors)
+            logging.warning(except_errors)
 
     else:
-        logging.error("not args found are passed")
+        logging.warning("No argument found.\n")
+        parser.print_help()
 
 
 if __name__ == "__main__":
