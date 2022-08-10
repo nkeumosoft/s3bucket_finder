@@ -1,0 +1,2 @@
+,bucket_name,access browser,url,Owner_ID,ACL: private,ACL: public-read,ACL: public-read-write,ACL: public-write-acp,ACL: public-write,ACL: public-read-acp,ACL: aws-exec-read,ACL: authenticated-read,ACL: log-delivery-write
+0,culture,Private,https://s3.amazonaws.com/culture,,True,False,False,False,False,False,False,False,False

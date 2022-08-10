@@ -1,0 +1,2 @@
+,bucket_name,access browser,url,Owner_ID,ACL: private,ACL: public-read,ACL: public-read-write,ACL: public-write-acp,ACL: public-write,ACL: public-read-acp,ACL: aws-exec-read,ACL: authenticated-read,ACL: log-delivery-write
+0,smi,Public,smi.s3.amazonaws.com,937b2518af78d3ba6b52bf14a9283d60dbe4fa3891ff4c19338a6e803d6b9e73,False,False,False,False,False,True,False,False,False

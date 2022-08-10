@@ -2,6 +2,7 @@
     Authors: Edmond Ghislain MAKOLLE & Noutcheu Libert Joran
 
 """
+import logging
 from dataclasses import dataclass
 
 
@@ -65,9 +66,10 @@ class Bucket:
         return self._acl_found
 
     @acl_found.setter
-    def acl_found(self, acl_found):
+    def acl_found(self, acl_found: dict):
         """Set the acl property of a bucket.
 
         :return: str
         """
+
         self._acl_found = acl_found
