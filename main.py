@@ -14,11 +14,8 @@ from core.aws.aws_setting import AwsSetting
 from core.aws.service import S3Acl, display_bucket_to_dict
 from core.business_logic.scrapping import scrapping, scrapping_file
 from core.cloud_storage.storage_settings import CloudStorageSetting
-from utils.createcsvfile import (
-    check_absolute_path,
-    makefolder,
-    save_data_to_csv_with_pandas,
-)
+from utils.createcsvfile import (check_absolute_path, makefolder,
+                                 save_data_to_csv_with_pandas)
 
 
 def args_parser():
