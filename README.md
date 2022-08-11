@@ -39,7 +39,9 @@ but you can change
 it doesn't matter if you give a relative path because when you give that your folder is create automaticaly in start of 
 home folder but if you specify a path that the parent folder has not exist the folder has not create
 
+
 The file will have the name <rapport_aws_s3>, but you can give another name with the command --rename.
+
 
 #### => For scanning a simple bucket
 
