@@ -63,15 +63,15 @@ def download_config(subparsers) -> None:
         help="Scan the bucket, if exist, and provide public properties",
     )
     parser_download.add_argument(
-        "--rename",
         "-r",
+        "--rename",
         dest="rename",
         help="Rename the output file the Default name is rapport_aws_s3.csv",
         required=False,
     )
     parser_download.add_argument(
-        "--path",
         "-p",
+        "--path",
         dest="download_path",
         help="specify the path of the output file by Default"
         "is << your home folder /ResultsCSV >>",
@@ -85,14 +85,12 @@ def parser_credential_config(subparsers) -> None:
     )
     parser_cred.add_argument(
         "--id",
-        "-i",
         dest="aws_access_key_id",
         help="Represents the AWS Access Key Id.",
         required=True,
     )
     parser_cred.add_argument(
         "--key",
-        "-k",
         dest="aws_secret_access_key",
         help="Represents the AWS Secret Access Key",
         required=True,
