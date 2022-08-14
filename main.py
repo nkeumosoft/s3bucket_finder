@@ -99,9 +99,9 @@ def main():
 
     if args.mode == "setup-config":
         if args.output != "json":
-            settings.config = (args.region, args.output)
+            settings.set_config(args.region, args.output)
         else:
-            settings.config = (args.region,)
+            settings.set_config(args.region)
         logging.info("Configuration of the config file done.")
 
     elif args.mode == "setup-cred":

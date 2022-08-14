@@ -54,10 +54,10 @@ def is_status_301(data, bucket_name: str) -> Optional[Bucket]:
         response = get(f"https://{endpoint}")
 
         if response.status_code == 200:
-            return is_status_200(bucket_name, "US", endpoint)
+            return is_status_200(bucket_name, "US", f"https://{endpoint}")
 
         else:
-            return is_status_403(bucket_name, "US", endpoint)
+            return is_status_403(bucket_name, "US", f"https://{endpoint}")
 
     except ConnectionError:
         logging.warning(

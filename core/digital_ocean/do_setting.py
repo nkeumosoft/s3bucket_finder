@@ -11,16 +11,6 @@ from typing import Any, Optional, Tuple
 from core.business_logic.setting import Setting
 
 
-def check_digitalocean_credentials_file() -> Tuple[bool, str]:
-    """Checks if the file credentials configuration of digital ocean exists.
-
-    :return: Tuple[Boolean, String]
-    """
-    file_path = os.path.join(str(Path.home()), ".digitalocean")
-    digitalocean_file_exist = Path(file_path).is_file()
-    return digitalocean_file_exist, file_path
-
-
 @dataclass()
 class DigitalOceanSetting(Setting):
     """Class for configuration of local Digital Ocean Setting."""
@@ -61,7 +51,7 @@ class DigitalOceanSetting(Setting):
         """
         logging.info("Setting Digital Ocean Credentials")
 
-        status, _path = check_digitalocean_credentials_file()
+        status, _path = self.__check_digitalocean_credentials_file()
 
         if not status:
             os.mkdir(_path)
@@ -78,7 +68,7 @@ class DigitalOceanSetting(Setting):
         """
         logging.info("Getting Digital Ocean Credentials")
 
-        status, _path = check_digitalocean_credentials_file()
+        status, _path = self.__check_digitalocean_credentials_file()
 
         if status:
             with open(_path, "r") as file:
@@ -92,6 +82,17 @@ class DigitalOceanSetting(Setting):
                 return self.__access_key, self.__secret_key
 
         return None
+
+    @staticmethod
+    def __check_digitalocean_credentials_file() -> Tuple[bool, str]:
+        """Checks if the file credentials configuration of digital ocean
+        exists.
+
+        :return: Tuple[Boolean, String]
+        """
+        file_path = os.path.join(str(Path.home()), ".digitalocean")
+        digitalocean_file_exist = Path(file_path).is_file()
+        return digitalocean_file_exist, file_path
 
     def authentication(self, access_key: str, secret_access_key: str) -> Any:
         pass
