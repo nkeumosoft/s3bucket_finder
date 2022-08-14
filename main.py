@@ -14,24 +14,39 @@ from core.aws.aws_setting import AwsSetting
 from core.aws.service import S3Acl, display_bucket_to_dict
 from core.business_logic.scrapping import scrapping, scrapping_file
 from core.cloud_storage.storage_settings import CloudStorageSetting
-from utils.createcsvfile import (check_absolute_path, makefolder,
-                                 save_data_to_csv_with_pandas)
+from utils.createcsvfile import (
+    check_absolute_path, makefolder,
+    save_data_to_csv_with_pandas
+)
 
 
-def args_parser():
-    parser = argparse.ArgumentParser(
-        description="s3bucket_finder: Analysis of Buckets by AfroCode\n",
-        prog="s3bucket_finder",
-        allow_abbrev=False,
+def parse_config(subparsers):
+    parser_config = subparsers.add_parser(
+        "setup-config", help="Local AWS Configuration of config file"
     )
+    parser_config.add_argument(
+        "--region",
+        "-r",
+        dest="region",
+        help="Name of the AWS region.",
+        required=True,
+    )
+    parser_config.add_argument(
+        "--output",
+        "-o",
+        dest="output",
+        help="Name of the AWS CLI output format. Default: json",
+        default="json",
+    )
+    return parser_config
 
-    subparsers = parser.add_subparsers(title="mode", dest="mode")
 
+def download_config(subparsers):
     # Download Mode
     parser_download = subparsers.add_parser(
         "scan",
         help="Create a csv file who  content the buckets information "
-        "with acl property",
+             "with acl property",
     )
 
     parser_download.add_argument(
@@ -39,9 +54,9 @@ def args_parser():
         "--scrap-file",
         dest="file",
         help="Scan a file containing a list of buckets name, "
-        "and provide public properties. You can "
-        "give the name of file if is on the current "
-        "directory, of give the path of the file",
+             "and provide public properties. You can "
+             "give the name of file if is on the current "
+             "directory, of give the path of the file",
     )
     parser_download.add_argument(
         "-s",
@@ -61,30 +76,13 @@ def args_parser():
         "-p",
         dest="download_path",
         help="specify the path of the output file by Default"
-        "is << your home folder /ResultsCSV >>",
+             "is << your home folder /ResultsCSV >>",
         required=False,
     )
+    return parser_download
 
-    # Setup Config Mode
-    parser_config = subparsers.add_parser(
-        "setup-config", help="Local AWS Configuration of config file"
-    )
-    parser_config.add_argument(
-        "--region",
-        "-r",
-        dest="region",
-        help="Name of the AWS region.",
-        required=True,
-    )
-    parser_config.add_argument(
-        "--output",
-        "-o",
-        dest="output",
-        help="Name of the AWS CLI output format. Default: json",
-        default="json",
-    )
 
-    # Setup Credentials Mode
+def parser_credential_config(subparsers):
     parser_cred = subparsers.add_parser(
         "setup-cred", help="Local AWS Configuration of credentials file"
     )
@@ -103,12 +101,30 @@ def args_parser():
         required=True,
     )
 
+    return  parser_cred
+
+
+def args_parser():
+    parser = argparse.ArgumentParser(
+        description="s3bucket_finder: Analysis of Buckets by AfroCode\n",
+        prog="s3bucket_finder",
+        allow_abbrev=False,
+    )
+
+    subparsers = parser.add_subparsers(title="mode", dest="mode")
+
+    download_config(subparsers)
+    # Setup Config Mode
+    parse_config(subparsers)
+    # Setup Credentials Mode
+    parser_credential_config(subparsers)
+
     # Parse the args
     return parser
 
 
 def scan_bucket(
-    list_of_bucket, aws_s3_acl, file_output, download_path, threads=1
+        list_of_bucket, aws_s3_acl, file_output, download_path, threads=1
 ):
     bucket_acl_value: list[dict] = []
 
@@ -118,12 +134,11 @@ def scan_bucket(
             for bucketName in list_of_bucket
         }
 
-        for future in as_completed(futures):
+        bucket_acl_value = [
+            display_bucket_to_dict(future.result())
+            for future in as_completed(futures)
+        ]
 
-            dict_to_save_csv = display_bucket_to_dict(future.result())
-            bucket_acl_value.append(dict_to_save_csv)
-
-    logging.info(bucket_acl_value)
     logging.info(download_path)
     save_data_to_csv_with_pandas(
         bucket_acl_value, file_name=file_output, folder_name=download_path
