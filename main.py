@@ -14,10 +14,8 @@ from core.aws.aws_setting import AwsSetting
 from core.aws.service import S3Acl, display_bucket_to_dict
 from core.business_logic.scrapping import scrapping, scrapping_file
 from core.cloud_storage.storage_settings import CloudStorageSetting
-from utils.createcsvfile import (
-    check_absolute_path, makefolder,
-    save_data_to_csv_with_pandas
-)
+from utils.createcsvfile import (check_absolute_path, makefolder,
+                                 save_data_to_csv_with_pandas)
 
 
 def parse_config(subparsers):
@@ -46,7 +44,7 @@ def download_config(subparsers):
     parser_download = subparsers.add_parser(
         "scan",
         help="Create a csv file who  content the buckets information "
-             "with acl property",
+        "with acl property",
     )
 
     parser_download.add_argument(
@@ -54,9 +52,9 @@ def download_config(subparsers):
         "--scrap-file",
         dest="file",
         help="Scan a file containing a list of buckets name, "
-             "and provide public properties. You can "
-             "give the name of file if is on the current "
-             "directory, of give the path of the file",
+        "and provide public properties. You can "
+        "give the name of file if is on the current "
+        "directory, of give the path of the file",
     )
     parser_download.add_argument(
         "-s",
@@ -76,7 +74,7 @@ def download_config(subparsers):
         "-p",
         dest="download_path",
         help="specify the path of the output file by Default"
-             "is << your home folder /ResultsCSV >>",
+        "is << your home folder /ResultsCSV >>",
         required=False,
     )
     return parser_download
@@ -101,7 +99,7 @@ def parser_credential_config(subparsers):
         required=True,
     )
 
-    return  parser_cred
+    return parser_cred
 
 
 def args_parser():
@@ -124,7 +122,7 @@ def args_parser():
 
 
 def scan_bucket(
-        list_of_bucket, aws_s3_acl, file_output, download_path, threads=1
+    list_of_bucket, aws_s3_acl, file_output, download_path, threads=1
 ):
     bucket_acl_value: list[dict] = []
 
