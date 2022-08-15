@@ -7,18 +7,19 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 from botocore.exceptions import NoCredentialsError
-from google.cloud import storage
 from requests.exceptions import HTTPError, RequestException, Timeout
 
 from core.aws.aws_setting import AwsSetting
 from core.aws.service import S3Acl, display_bucket_to_dict
 from core.business_logic.scrapping import scrapping, scrapping_file
-from core.cloud_storage.storage_settings import CloudStorageSetting
-from utils.createcsvfile import (check_absolute_path, makefolder,
-                                 save_data_to_csv_with_pandas)
+from utils.createcsvfile import (
+    check_absolute_path,
+    makefolder,
+    save_data_to_csv_with_pandas,
+)
 
 
-def parse_config(subparsers):
+def parse_config(subparsers) -> None:
     parser_config = subparsers.add_parser(
         "setup-config", help="Local AWS Configuration of config file"
     )
@@ -36,10 +37,9 @@ def parse_config(subparsers):
         help="Name of the AWS CLI output format. Default: json",
         default="json",
     )
-    return parser_config
 
 
-def download_config(subparsers):
+def download_config(subparsers) -> None:
     # Download Mode
     parser_download = subparsers.add_parser(
         "scan",
@@ -77,10 +77,9 @@ def download_config(subparsers):
         "is << your home folder /ResultsCSV >>",
         required=False,
     )
-    return parser_download
 
 
-def parser_credential_config(subparsers):
+def parser_credential_config(subparsers) -> None:
     parser_cred = subparsers.add_parser(
         "setup-cred", help="Local AWS Configuration of credentials file"
     )
@@ -98,8 +97,6 @@ def parser_credential_config(subparsers):
         help="Represents the AWS Secret Access Key",
         required=True,
     )
-
-    return parser_cred
 
 
 def args_parser():
@@ -124,8 +121,6 @@ def args_parser():
 def scan_bucket(
     list_of_bucket, aws_s3_acl, file_output, download_path, threads=1
 ):
-    bucket_acl_value: list[dict] = []
-
     with ThreadPoolExecutor(max_workers=threads) as executor:
         futures = {
             executor.submit(aws_s3_acl.get_bucket_acl, bucketName): bucketName
@@ -250,21 +245,6 @@ def main():
     else:
         logging.warning("No argument found.\n")
         parser.print_help()
-
-
-def main1():
-    setting = CloudStorageSetting()
-    setting.set_credentials(
-        "/home/noutcheu/.google/handwork-19333-e1ac1f43970b.json"
-    )
-    # If you don't specify credentials when constructing the client, the
-    # client library will look for credentials in the environment.
-    storage_client = storage.Client()
-
-    # Make an authenticated API request
-    buckets = list(storage_client.list_buckets())
-    for bucket in buckets:
-        logging.info(bucket)
 
 
 if __name__ == "__main__":
