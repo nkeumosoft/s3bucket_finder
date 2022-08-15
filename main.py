@@ -172,41 +172,64 @@ def launch_aws_scan(
     logging.info("It's over, the file is in the directory %s", download_path)
 
 
-def scan(args, settings):
-    try:
-        download_path: str = ""
-        list_of_bucket = None
-        if args.download_path is not None:
-            download_path = args.download_path
-            # check if this folder exist
+def rename_result(rename_file):
+    if rename_file is not None:
+        file_output = rename_file
+    else:
+        file_output = "rapport_aws_s3"
 
-            if makefolder(download_path) is None:
-                logging.error(
-                    "error with your download path No such directory:  "
-                    f"{download_path} please check if your parent folder exist"
-                )
-                exit(0)
+    return file_output
 
-        if args.bucket_name is not None:
-            logging.info(
-                f"The bucket scan <{args.bucket_name}> will start in a few "
-                f"seconds...\n",
-            )
-            list_of_bucket = scrapping(args.bucket_name)
-            print("\n")  # Just for presentation
 
+def type_of_bucket_to_scan(args):
+    list_of_bucket = []
+
+    if args.bucket_name is not None:
+        logging.info(
+            f"The bucket scan <{args.bucket_name}> will start in a few "
+            f"seconds...\n",
+        )
+        list_of_bucket = scrapping(args.bucket_name)
+        print("\n")  # Just for presentation
+    else:
         if args.file is not None:
             logging.info("The file scan will start in a few seconds...\n")
             list_of_bucket = scrapping_file(args.file)
             print("\n")  # Just for presentation
 
-        if args.rename is not None:
-            file_output = args.rename
-        else:
-            file_output = "rapport_aws_s3"
+    return list_of_bucket
 
+
+def check_path_download(download_path):
+    try:
+        if download_path is not None:
+            download_path = download_path
+            # check if this folder exist
+
+            if makefolder(download_path) is None:
+                raise ValueError(
+                    "error with your download path No such directory:  "
+                )
+
+            return download_path
+
+    except ValueError:
+        logging.error(
+            "error with your download path No such directory:  "
+            f"{download_path} please check if your parent folder exist"
+        )
+        exit(0)
+    return "ResultsCSV"
+
+
+def scan(args, settings):
+    try:
+        download_path: str = check_path_download(args.download_path)
+        list_of_bucket = None
+
+        file_output = rename_result(args.rename)
         bucket_name = args.bucket_name
-
+        list_of_bucket = type_of_bucket_to_scan(args)
         launch_aws_scan(
             bucket_name,
             list_of_bucket,
