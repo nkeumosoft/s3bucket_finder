@@ -138,6 +138,40 @@ def scan_bucket(
     )
 
 
+def launch_aws_scan(
+    bucket_name,
+    list_of_bucket,
+    settings,
+    file_output,
+    download_path,
+    threads=1,
+):
+    aws_s3_client = boto3.client("s3")
+    logging.info("Generation of CSV file with ACL properties...\n")
+    aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
+    if bucket_name is not None:
+        scan_bucket(
+            [list_of_bucket],
+            aws_s3_acl,
+            file_output,
+            download_path,
+            threads=1,
+        )
+
+    else:
+        scan_bucket(
+            list_of_bucket,
+            aws_s3_acl,
+            file_output,
+            download_path,
+            threads=threads,
+        )
+
+    download_path = check_absolute_path(download_path)
+
+    logging.info("It's over, the file is in the directory %s", download_path)
+
+
 def scan(args, settings):
     try:
         download_path: str = ""
@@ -171,32 +205,15 @@ def scan(args, settings):
         else:
             file_output = "rapport_aws_s3"
 
-        aws_s3_client = boto3.client("s3")
-        logging.info("Generation of CSV file with ACL properties...\n")
-        aws_s3_acl = S3Acl(list_of_bucket, aws_s3_client, settings)
+        bucket_name = args.bucket_name
 
-        if args.bucket_name is not None:
-            scan_bucket(
-                [list_of_bucket],
-                aws_s3_acl,
-                file_output,
-                download_path,
-                threads=1,
-            )
-
-        else:
-            scan_bucket(
-                list_of_bucket,
-                aws_s3_acl,
-                file_output,
-                download_path,
-                threads=4,
-            )
-
-        download_path = check_absolute_path(download_path)
-
-        logging.info(
-            "It's over, the file is in the directory %s", download_path
+        launch_aws_scan(
+            bucket_name,
+            list_of_bucket,
+            settings,
+            file_output,
+            download_path,
+            threads=1,
         )
 
     except NoCredentialsError:

@@ -18,10 +18,6 @@ repos:
     rev: v2.2.0
     hooks:
       - id: seed-isort-config
-  - repo: https://github.com/timothycrosley/isort
-    rev: 4.3.21  # pick the isort version you'd like to use from https://github.com/timothycrosley/isort/releases
-    hooks:
-      - id: isort
   - repo: https://github.com/PyCQA/flake8
     rev: 5.0.3
     hooks:
