@@ -24,8 +24,24 @@ Where BUCKET_NAME is the name of bucket you want to scan.
 
 Where the FILE parameter can be a file or a path to a file.
 
-The generated CSV file of the scan are saved in your working directory, in the automatically created ResultsCSV folder.
+The generated CSV file of the scan are saved in your home working directory, is automatically created in ResultsCSV folder.
+but you can change
+
+
+#### => For scanning a simple bucket
+
+    python main.py scan -s BUCKET_NAME --rename RENAME -p --path your_path_folder
+
+#### => For scanning a file containing a list of buckets name
+
+    python main.py scan -sf FILE --rename RENAME -p or --path your_path_folder
+
+it doesn't matter if you give a relative path because when you give that your folder is create automaticaly in start of
+home folder but if you specify a path that the parent folder has not exist the folder has not create
+
+
 The file will have the name <rapport_aws_s3>, but you can give another name with the command --rename.
+
 
 #### => For scanning a simple bucket
 
