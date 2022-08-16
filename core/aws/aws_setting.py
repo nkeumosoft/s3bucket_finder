@@ -104,7 +104,7 @@ class AwsSetting(Setting):
 
         return None
 
-    def set_credentials(self, access_key: str, secret_access_key: str) -> None:
+    def set_credentials(self, *args) -> None:
         """Configure the credentials file of the AWS directory, if the
         directory does not exist, it creates it.
 
@@ -123,8 +123,8 @@ class AwsSetting(Setting):
 
         with open(file_credentials_path, "w") as file:
             file.write("[default]\n")
-            file.write(f"aws_access_key_id={access_key}\n")
-            file.write(f"aws_secret_access_key={secret_access_key}\n")
+            file.write(f"aws_access_key_id={args[0]}\n")
+            file.write(f"aws_secret_access_key={args[0]}\n")
 
     @property
     def config(self):
