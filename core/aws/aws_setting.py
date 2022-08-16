@@ -36,10 +36,10 @@ class AwsSetting(Setting):
 
         return None
 
-    def get_credentials(self) -> Optional[Tuple]:
+    def get_credentials(self) -> Optional[dict]:
         """Getter account credentials.
 
-        :return: tuple(str, str) | None
+        :return: dict(str: str) | None
         """
         logging.info("Getting AWS Credentials")
 
@@ -54,7 +54,10 @@ class AwsSetting(Setting):
                         self.__secret_access_key = line.split("=")[1].rstrip(
                             "\n"
                         )
-                return self.__access_key_id, self.__secret_access_key
+                return {
+                    "access_key_id": self.__access_key_id,
+                    "secret_access_key": self.__secret_access_key,
+                }
 
         return None
 

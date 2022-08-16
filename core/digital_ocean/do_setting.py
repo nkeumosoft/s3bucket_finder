@@ -79,8 +79,15 @@ class DigitalOceanSetting(Setting):
                     if "SPACES_SECRET" in line:
                         self.__secret_key = line.split("=")[1].rstrip("\n")
 
+<<<<<<< HEAD
                 return {"access_key": self.__access_key,
                         "secret_key": self.__secret_key}
+=======
+                return {
+                    "access_key": self.__access_key,
+                    "secret_key": self.__secret_key,
+                }
+>>>>>>> b0d3386 (Change the tuple to dict)
 
         return None
 
