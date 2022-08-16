@@ -36,16 +36,20 @@ class S3Acl:
         :param bucket: bucket to check in aws s3 storage
         """
 
-        if not isinstance(bucket, Bucket):
-            raise ValueError("you must send a bucket object")
-
         try:
+            if not isinstance(bucket, Bucket):
+                raise ValueError("you must send a bucket object")
+
             self.aws_client.head_bucket(Bucket=bucket.get_name)
         except ClientError as error:
             resp_error = error.response
             if resp_error.get("Error").get("Code") == "404":
                 logging.error("bucket not %s found", bucket.get_name)
                 return False
+
+        except ValueError:
+            logging.error("you must send a bucket object")
+            exit(0)
         return True
 
     def check_read_acl_permissions(self, bucket):

@@ -21,7 +21,7 @@ class CloudStorageSetting(GlobalSettings):
         self.save_path_file_key()
 
     def set_credentials(self, path_file_key):
-        if path_file_key and check_valid_path(path_file_key):
+        if path_file_key and self.check_valid_path(path_file_key):
             self.path_file_key = path_file_key
 
     def get_credentials(self):
@@ -56,7 +56,7 @@ class CloudStorageSetting(GlobalSettings):
         self.__path_file_key = path_file_key
 
     @staticmethod
-    def check_env_auth_credential(self) -> bool:
+    def check_env_auth_credential() -> bool:
         if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
             return True
         return False
@@ -64,8 +64,8 @@ class CloudStorageSetting(GlobalSettings):
     def save_path_file_key(self):
         pass
 
-
-def check_valid_path(path_file_key):
-    if os.path.isfile(path_file_key):
-        return True
-    return False
+    @staticmethod
+    def check_valid_path(path_file_key):
+        if os.path.isfile(path_file_key):
+            return True
+        return False
