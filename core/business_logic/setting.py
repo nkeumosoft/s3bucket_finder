@@ -13,11 +13,7 @@ class GlobalSettings(ABC):
         pass
 
     @abstractmethod
-<<<<<<< HEAD
     def get_credentials(self) -> Optional[Any]:
-=======
-    def get_credentials(self) -> Optional[dict]:
->>>>>>> b0d3386 (Change the tuple to dict)
         pass
 
 

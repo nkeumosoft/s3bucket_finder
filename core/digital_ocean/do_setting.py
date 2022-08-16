@@ -40,13 +40,12 @@ class DigitalOceanSetting(Setting):
 
         self.__region = region
 
-    def set_credentials(self, access_key: str, secret_access_key: str) -> None:
+    def set_credentials(self, *args) -> None:
         """Function that puts access key and secret access in environment
         variables.
 
-        :param access_key: (String) represent a Digital Ocean access key
-        :param secret_access_key: (String) represent a Digital Ocean secret
-         access
+        :param args: represent a Digital Ocean access key and a Digital Ocean
+        secret access
         :return: None
         """
         logging.info("Setting Digital Ocean Credentials")
@@ -57,8 +56,8 @@ class DigitalOceanSetting(Setting):
             os.mkdir(_path)
 
         with open(_path, "w") as file:
-            file.write(f"SPACES_KEY={access_key}\n")
-            file.write(f"SPACES_SECRET={secret_access_key}\n")
+            file.write(f"SPACES_KEY={args[0]}\n")
+            file.write(f"SPACES_SECRET={args[1]}\n")
 
     def get_credentials(self) -> Optional[dict]:
         """Function that retrieves access key and secret access from
@@ -79,16 +78,10 @@ class DigitalOceanSetting(Setting):
                     if "SPACES_SECRET" in line:
                         self.__secret_key = line.split("=")[1].rstrip("\n")
 
-<<<<<<< HEAD
-                return {"access_key": self.__access_key,
-                        "secret_key": self.__secret_key}
-=======
                 return {
                     "access_key": self.__access_key,
                     "secret_key": self.__secret_key,
                 }
->>>>>>> b0d3386 (Change the tuple to dict)
-
         return None
 
     @staticmethod
