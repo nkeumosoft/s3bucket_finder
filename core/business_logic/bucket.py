@@ -1,5 +1,5 @@
 """
-    Authors: Edmond Ghislain MAKOLLE & Noutcheu Libert Joran
+    Authors: Edmond Ghislain MAKOLLE && Noutcheu Libert Joran
 
 """
 from dataclasses import dataclass
