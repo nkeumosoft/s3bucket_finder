@@ -12,11 +12,7 @@ from requests.exceptions import HTTPError, RequestException, Timeout
 from core.aws.aws_setting import AwsSetting
 from core.aws.service import S3Acl, display_bucket_to_dict
 from core.business_logic.scrapping import scrapping, scrapping_file
-from utils.createcsvfile import (
-    check_absolute_path,
-    makefolder,
-    save_data_to_csv_with_pandas,
-)
+from utils.createcsvfile import makefolder, save_data_to_csv_with_pandas
 
 
 def parse_config(subparsers) -> None:
@@ -130,10 +126,11 @@ def scan_bucket(
             for future in as_completed(futures)
         ]
 
-    logging.info(download_path)
-    save_data_to_csv_with_pandas(
+    download_path = save_data_to_csv_with_pandas(
         bucket_acl_value, file_name=file_output, folder_name=download_path
     )
+
+    logging.info("It's over, the file is in the directory %s", download_path)
 
 
 def launch_aws_scan(
@@ -164,10 +161,6 @@ def launch_aws_scan(
             download_path,
             threads=threads,
         )
-
-    download_path = check_absolute_path(download_path)
-
-    logging.info("It's over, the file is in the directory %s", download_path)
 
 
 def rename_result(rename_file):

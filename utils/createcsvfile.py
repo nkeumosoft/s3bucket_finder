@@ -41,7 +41,7 @@ def save_data_to_csv_with_pandas(
     data_for_make_to_csv: List[dict],
     file_name: str,
     folder_name: str = "ResultsCSV",
-) -> None:
+) -> Optional[str]:
     """write a data into a csv file.
 
     :param data_for_make_to_csv: list[ file:dict ] that you want to print
@@ -54,6 +54,7 @@ def save_data_to_csv_with_pandas(
     folder = makefolder(folder_name)
     dataframe = pandas.DataFrame(data_for_make_to_csv)
     dataframe.to_csv(f"{folder}/{file_name}.csv")
+    return folder
 
 
 def makefolder(folder_path: str) -> Optional[str]:
@@ -63,7 +64,11 @@ def makefolder(folder_path: str) -> Optional[str]:
     :return folder:str
     """
     try:
-        folder = check_absolute_path(folder_path)
+        if folder_path in "ResultsCSV":
+            folder = os.getcwd()
+            folder = os.path.join(folder, folder_path)
+        else:
+            folder = check_absolute_path(folder_path)
 
         if not folder_exist(folder):
             os.mkdir(folder)

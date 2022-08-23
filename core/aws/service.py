@@ -36,15 +36,20 @@ class S3Acl:
         :param bucket: bucket to check in aws s3 storage
         """
 
-        if not isinstance(bucket, Bucket):
-            raise ValueError("you must send a bucket object")
-
         try:
+            if not isinstance(bucket, Bucket):
+                raise ValueError("you must send a bucket object")
+
             self.aws_client.head_bucket(Bucket=bucket.get_name)
         except ClientError as error:
-
-            if error.response["Error"]["Code"] == "404":
+            resp_error = error.response
+            if resp_error.get("Error").get("Code") == "404":
+                logging.error("bucket not %s found", bucket.get_name)
                 return False
+
+        except ValueError:
+            logging.error("you must send a bucket object")
+            exit(0)
         return True
 
     def check_read_acl_permissions(self, bucket):
@@ -77,13 +82,13 @@ class S3Acl:
                 return acl_perm_response
 
             except ClientError as aws_error:
-
-                if (aws_error.response["Error"]["Code"] == "AccessDenied") or (
-                    aws_error.response["Error"]["Code"] == "AllAccessDisabled"
+                aws_resp = aws_error.response
+                if (aws_resp.get("Error").get("Code") == "AccessDenied") or (
+                    aws_resp.get("Error").get("Code") == "AllAccessDisabled"
                 ):
                     acl_perm_response["permission"] = Permission.ACCESS_DENIED
                 elif (
-                    aws_error.response["Error"]["Code"]
+                    aws_resp.get("Error").get("Code")
                     == TypeException.ILLEGAL_LOCATION
                 ):
                     acl_perm_response[
@@ -177,7 +182,7 @@ def list_of_bucket_human_read_acl(
 
     for grant in acl["Grants"]:
         try:
-            if grant["Grantee"]["Type"] == "Group":
+            if grant.get("Grantee").get("Type") == "Group":
                 result_permissions = display_acl_properties(
                     grant, result_permissions
                 )
@@ -210,7 +215,9 @@ def display_acl_properties(grant: dict, result_permissions: dict) -> dict:
     return result_permissions
 
 
-def access_control_unauthenticated_user(result_permissions, permission):
+def access_control_unauthenticated_user(
+    result_permissions, permission
+) -> dict:
     """"""
     result_permissions["public-read-write"] = (
         permission["Permission"] == "FULL_CONTROL"
