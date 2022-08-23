@@ -13,7 +13,7 @@ class GlobalSettings(ABC):
         pass
 
     @abstractmethod
-    def get_credentials(self) -> Optional[tuple]:
+    def get_credentials(self) -> Optional[Any]:
         pass
 
 
