@@ -107,6 +107,3 @@ def check_absolute_path(path_link: str) -> str:
         folder = path_link
 
     return folder
-
-
-makefolder("ResultsCSV")
