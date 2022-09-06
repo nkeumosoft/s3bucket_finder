@@ -78,7 +78,7 @@ def is_status_400(data, bucket_name: str) -> Optional[Bucket]:
     error = data["Error"]
     if error["Code"] == "IllegalLocationConstraintException":
         location = error["Message"].split(" ")[1]
-        url = f"https://s3.{location}.amazonaws.com/{bucket_name}"
+        url = f"https://{bucket_name}.s3.{location}.amazonaws.com"
         try:
             response = get(url)
 
@@ -108,10 +108,14 @@ def scrapping(bucket_name: str) -> Optional[Bucket]:
     :return: Bucket | None
     """
     try:
-        response = get(URL + "/" + bucket_name)
+        response = get("https://" + bucket_name + ".s3.amazonaws.com")
 
         if response.status_code == 200:
-            return is_status_200(bucket_name, "US", URL + "/" + bucket_name)
+            return is_status_200(
+                bucket_name,
+                "US",
+                "https://" + bucket_name + ".s3.amazonaws.com",
+            )
 
         data = xmltodict.parse(response.content)
 
@@ -121,7 +125,9 @@ def scrapping(bucket_name: str) -> Optional[Bucket]:
 
             elif response.status_code == 403:
                 return is_status_403(
-                    bucket_name, "US", URL + "/" + bucket_name
+                    bucket_name,
+                    "US",
+                    "https://" + bucket_name + ".s3.amazonaws.com",
                 )
 
             else:
